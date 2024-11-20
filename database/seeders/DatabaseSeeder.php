@@ -2,9 +2,13 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\SensorSeeder;
+use Database\Seeders\CustomerSeeder;
+use Database\Seeders\SensorDataSeeder;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +17,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create one admin user
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@lab.com',
+            'password' => Hash::make('admin123'),
+            'is_admin' => true,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Generate 4 random lab technicians
+        User::factory(4)->create(); // Generates 4 random users
+
+        // Seed related tables
+        $this->call([
+            SensorSeeder::class,
+            CustomerSeeder::class,
+            SensorsDataSeeder::class,
         ]);
     }
 }
