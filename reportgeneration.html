@@ -6,6 +6,9 @@
   <title>Lab Monitoring System</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <script src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
+
   <style>
     /* Sidebar styles */
     #sidebar {
@@ -93,7 +96,7 @@
       <div class="flex flex-col md:flex-row items-center gap-8 mb-6">
         <div class="w-full md:w-1/2">
           <label class="text-gray-600 text-center">Choose Lab Room</label>
-          <select class="border border-gray-300 rounded-lg p-2 mt-1 w-full">
+          <select id="labRoom" class="border border-gray-300 rounded-lg p-2 mt-1 w-full">
             <option>Preparation Room</option>
             <option>FESEM Room</option>
             <option>FETEM Room</option>
@@ -101,11 +104,11 @@
         </div>
         <div class="w-full md:w-1/2">
           <label class="text-gray-600 text-center">Graph View</label>
-          <select data-chart class="border border-gray-300 rounded-lg p-2 mt-1 w-full">
+          <select id="graphView" data-chart class="border border-gray-300 rounded-lg p-2 mt-1 w-full">
             <option disabled selected>Select Graph View</option>
-            <option>Days</option>
-            <option>Weeks</option>
-            <option>Months</option>
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
           </select>
         </div>
       </div>
@@ -118,12 +121,13 @@
         <div class="text-center">
           <label class="text-gray-600">Range</label>
           <div class="flex items-center justify-center gap-2 mt-1">
-            <input type="date" class="border border-gray-300 rounded-lg p-2">
+            <input type="date" id="startDate" class="border border-gray-300 rounded-lg p-2">
             <span>to</span>
-            <input type="date" class="border border-gray-300 rounded-lg p-2">
+            <input type="date" id="endDate" class="border border-gray-300 rounded-lg p-2">
           </div>
         </div>
       </div>
+      
 
       <!-- Problem Checkbox and Description -->
       <div class="mt-4">
@@ -131,12 +135,35 @@
           <input type="checkbox" class="form-checkbox text-blue-500">
           <span class="ml-2">Problem present?</span>
         </label>
-        <textarea placeholder="Problem Description" class="border border-gray-300 rounded-lg w-full mt-2 p-2"></textarea>
+        <textarea id="problemDescription" placeholder="Problem Description" class="border border-gray-300 rounded-lg w-full mt-2 p-2"></textarea>
       </div>
+      
+      <!-- PDF Preview Modal -->
+  
+<div id="pdfPreviewModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg shadow-lg max-w-3xl w-full relative">
+    <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 text-2xl">&times;</button>
+    <div id="pdfPreviewContent" class="preview-container" style="max-height: 80vh;">
+      <h2 class="text-lg font-semibold text-gray-700">Report Preview</h2>
+      <div id="labRoomPreview" class="text-gray-700 mt-2"></div>
+      <div id="dateRangePreview" class="text-gray-700 mt-2"></div>
+      <div id="problemDescriptionPreview" class="text-gray-700 mt-2"></div>
+    </div>
+    <button id="downloadPDFButton" class="mt-4 bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 block mx-auto">
+      Download Report
+    </button>
+  
+  </div>
+</div>
+  
 
       <!-- Generate Report Button -->
-      <button class="mt-4 bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 block mx-auto">
+      <button onclick="generateReportPreview()" class="mt-4 bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 block mx-auto">
         Generate Report
+      </button>  
+      
+      <button id="downloadCSVButton" class="mt-2 bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 block mx-auto">
+        Download CSV
       </button>
     </div>
   </div>
