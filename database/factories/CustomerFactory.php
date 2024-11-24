@@ -16,10 +16,13 @@ class CustomerFactory extends Factory
      */
     public function definition(): array
     {
+        $institution = $this->faker->randomElement([$this->faker->company, 'Other Organisation']);
+
         return [
             'full_name' => $this->faker->name,
             'passport_number' => $this->faker->unique()->lexify('?????-?????-?????'),
-            'institution' => $this->faker->company,
+            'institution' => $institution,
+            'specific_institution' => $institution === 'Other Organisation' ? $this->faker->company : null,
             'position' => $this->faker->jobTitle,
             'phone_number' => $this->faker->phoneNumber,
             'email' => $this->faker->unique()->safeEmail,
