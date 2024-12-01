@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.dashboard-room-header {
+    background: linear-gradient(to right, #3b82f6, #60a5fa);
+    color: white;
+    padding: 1rem;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden; /* To contain the background image */
+}
+
+.dashboard-room-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4; /* Adjust this value to control image visibility */
+}
+
+.dashboard-room-header::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: black;
+    opacity: 0.5; /* Adjust this value to control gradient opacity */
+}
+
+
+.chiller-room-header {
+    background: linear-gradient(to right, #3b82f6, #60a5fa);
+    color: white;
+    padding: 1rem;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden; /* To contain the background image */
+}
+
+.chiller-room-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4; /* Adjust this value to control image visibility */
+}
+
+.chiller-room-header::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #3b82f6;
+    opacity: 0.5; /* Adjust this value to control gradient opacity */
+}
+
+.header-content {
+    position: relative;
+    z-index: 10; /* Ensure text stays above background layers */
+}
