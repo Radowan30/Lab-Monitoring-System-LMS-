@@ -4,6 +4,13 @@ use App\Http\Controllers\LabRoomController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+// Route::match(['get', 'post'], '/dashboard/sensor1', [ProfileController::class, 'showSensorInfo'])->name('showSensorInfo');
+
+// Route::post('/dashboard', [ProfileController::class, 'showSensorInfo'])->name('showSensorInfo');
+
+Route::post('/dashboard/sensor1', [LabRoomController::class, 'putSensor1Info'])->name('putSensor1Info');
+Route::get('/dashboard/sensor1', [LabRoomController::class, 'getSensor1Info'])->name('getSensor1Info');
+
 Route::get('/', function () {
     return view('welcome');
 });

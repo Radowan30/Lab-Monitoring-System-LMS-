@@ -46,8 +46,8 @@
                                 class="absolute bottom-0 left-0 right-0 bg-white/60 backdrop-blur-sm md:py-4 flex justify-center items-center rounded-b-lg md:h-30">
                                 <div
                                     class="text-blue-400 bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent text-center">
-                                    <div class="text-lg font-bold">20°C</div>
-                                    <div class="text-lg font-bold">60 RH</div>
+                                    <div class="text-lg font-bold"><span id="Sensor1Temp"></span>°C</div>
+                                    <div class="text-lg font-bold"><span id="Sensor1Humi"></span> RH</div>
                                 </div>
                             </div>
                         </div>
@@ -141,6 +141,26 @@
     </main>
 
     <script>
+        function fetchSensor1Data() {
+            $.ajax({
+                url: '/dashboard/sensor1', // The URL the request is sent to
+                method: 'GET', // AJAX sends a GET request to retrieve data
+                success: function(data) {
+                    $('#Sensor1Temp').text(data.temperature);
+                    $('#Sensor1Humi').text(data.humidity);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching data:", error);
+                }
+            });
+        }
+
+        // Fetch data every 5 seconds
+        setInterval(fetchSensor1Data, 5000);
+
+        // Initial fetch
+        fetchSensor1Data();
+
         feather.replace();
     </script>
 

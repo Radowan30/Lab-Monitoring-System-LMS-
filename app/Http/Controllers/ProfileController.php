@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Sensor;
+use App\Models\SensorsData;
+use Cache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Carbon\Carbon;
+use Log;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -57,4 +63,7 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+
+   
 }

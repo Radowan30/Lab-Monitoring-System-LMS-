@@ -9,4 +9,9 @@ class SensorsData extends Model
 {
     /** @use HasFactory<\Database\Factories\SensorDataFactory> */
     use HasFactory;
+
+    // protected $fillable = ['sensor_id', 'temperature', 'humidity', 'recorded_at'];
+
+    protected $guarded = [];
+
 }
