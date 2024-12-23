@@ -111,13 +111,11 @@ class LabRoomController extends Controller
 
     public function putSensor1Info(Request $request)
     {
-        if ($request->isMethod('post')) {
-            $temperature = $request->input('temperature');
-            $humidity = $request->input('humidity');
+        $temperature = $request->input('temperature');
+        $humidity = $request->input('humidity');
 
-            Cache::put('temperature', $temperature, 60);
-            Cache::put('humidity', $humidity, 60);
-        }
+        Cache::put('temperature', $temperature, 60);
+        Cache::put('humidity', $humidity, 60);
     }
 
     public function getSensor1Info(Request $request)
@@ -137,8 +135,7 @@ class LabRoomController extends Controller
         $currentSecond = Carbon::now()->second; // Get the current second
 
         // Check if the current time is in the storeHours array and it's within the first 5 seconds of the hour
-        if (in_array($currentHour, $storeHours) && $currentMinute === 0 && $currentSecond <= 5) { //may need to do $currentMinute>=0 and $currentMinute<=1
-            // Store the data in the database
+        if (in_array($currentHour, $storeHours) && $currentMinute <= 1) {
 
             $sensorExists = Sensor::where('sensor_id', 1)->exists();
 
