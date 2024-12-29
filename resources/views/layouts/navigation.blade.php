@@ -144,7 +144,7 @@
                 <i data-feather="users"></i>
                 <span>Customer Analytics</span>
             </a>
-            <a href="#" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
+            <a href="{{ route('settings.index') }}" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
                 <i data-feather="settings"></i>
                 <span>Settings</span>
             </a>
@@ -163,15 +163,17 @@
                 <span>Logout</span>
             </a>
         </form>
-        <div class="flex items-center space-x-3 px-4 py-2 mt-2">
-            <div class="w-8 h-8 rounded-full bg-[#3B82F6] flex items-center justify-center">
-                <i data-feather="user" class="text-white"></i>
+        <a href="{{ route('profile.edit') }}">
+            <div class="flex items-center space-x-3 px-4 py-2 mt-2">
+                <div class="w-8 h-8 rounded-full bg-[#3B82F6] flex items-center justify-center">
+                    <i data-feather="user" class="text-white"></i>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-600">Username</div>
+                    <div class="text-xs text-gray-400">Lab Technician</div>
+                </div>
             </div>
-            <div>
-                <div class="text-sm text-gray-600">Username</div>
-                <div class="text-xs text-gray-400">Lab Technician</div>
-            </div>
-        </div>
+        </a>
     </div>
 </aside>
 

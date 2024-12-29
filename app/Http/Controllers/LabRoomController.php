@@ -114,19 +114,7 @@ class LabRoomController extends Controller
         $temperature = $request->input('temperature');
         $humidity = $request->input('humidity');
 
-        Cache::put('temperature', $temperature, 60);
-        Cache::put('humidity', $humidity, 60);
-    }
-
-    public function getSensor1Info(Request $request)
-    {
-        $temperature = Cache::get('temperature', null);
-        $humidity = Cache::get('humidity', null);
-
-        if (is_null($temperature) || is_null($humidity)) {
-            return response()->json(['error' => 'No valid data in cache'], 400);
-        }
-
+        
         // Store in database only at specific times
         $storeHours = [3, 9, 15, 21];  // Define the hours you want to check
 
@@ -152,6 +140,20 @@ class LabRoomController extends Controller
 
             Log::info("Data stored: temperature={$temperature}, humidity={$humidity}");
         }
+
+        Cache::put('temperature', $temperature, 60);
+        Cache::put('humidity', $humidity, 60);
+    }
+
+    public function getSensor1Info(Request $request)
+    {
+        $temperature = Cache::get('temperature', null);
+        $humidity = Cache::get('humidity', null);
+
+        if (is_null($temperature) || is_null($humidity)) {
+            return response()->json(['error' => 'No valid data in cache'], 400);
+        }
+
         return response()->json([
             'temperature' => $temperature,
             'humidity' => $humidity,

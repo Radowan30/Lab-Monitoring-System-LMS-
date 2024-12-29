@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\LabRoomController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 // Route::match(['get', 'post'], '/dashboard/sensor1', [ProfileController::class, 'showSensorInfo'])->name('showSensorInfo');
@@ -43,6 +44,10 @@ Route::middleware(['auth', 'verified'])->group(function () { //here, there are t
     Route::get('lab_rooms/fesem-chiller', [LabRoomController::class, 'show_FESEM_chiller'])->name('lab_rooms.fesem-chiller');
 
     Route::get('/sensor-data', [LabRoomController::class, 'getSensorData'])->name('sensor.data');
+
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+
+    Route::post('/settings', [SettingsController::class, 'save'])->name('settings.save');
 
     // Route::get('/FETEM-room-sensor-data', [LabRoomController::class, 'getFETEMRoomSensorData'])->name('FETEM-room-sensor.data');
 
