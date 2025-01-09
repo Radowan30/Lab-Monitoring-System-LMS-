@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ThresholdAlert;
 use App\Models\Sensor;
 use App\Models\SensorsData;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Cache;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Log;
+use Mail;
+use Notification;
 
 class LabRoomController extends Controller
 {
@@ -20,7 +24,7 @@ class LabRoomController extends Controller
 
     public function show_FETEM_room()
     {
-        return view('lab_rooms.fetem-room');
+        return view('lab_rooms.fetem$sensor');
     }
 
     public function show_FETEM_chiller()
@@ -30,7 +34,7 @@ class LabRoomController extends Controller
 
     public function show_FESEM_room()
     {
-        return view('lab_rooms.fesem-room');
+        return view('lab_rooms.fesem$sensor');
     }
 
     public function show_FESEM_chiller()
@@ -113,8 +117,26 @@ class LabRoomController extends Controller
     {
         $temperature = $request->input('temperature');
         $humidity = $request->input('humidity');
+        $sensorID = 1;
+        // Fetch thresholds from the database
+        $sensor = Sensor::find($sensorID);
+        $tempThreshold = $sensor->temp_threshold;
+        $humidThreshold = $sensor->humidity_threshold;
 
-        
+        // Check thresholds
+        $isAboveThreshold = ($temperature > $tempThreshold) || ($humidity > $humidThreshold);
+
+        if ($isAboveThreshold) {
+            // Save notification to the database
+            Notification::create([
+                'message' => "Temperature and/or humidity above threshold in Room $sensor->lab_room_name. Recorded temperature: $temperature °C, humidity: $humidity%. Thresholds: temperature $tempThreshold °C, humidity $humidThreshold%.",
+                'sensor_id' => $sensorID,
+            ]);
+
+            // Queue email notifications
+            $this->sendEmailNotifications($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold);
+        }
+
         // Store in database only at specific times
         $storeHours = [3, 9, 15, 21];  // Define the hours you want to check
 
@@ -122,7 +144,7 @@ class LabRoomController extends Controller
         $currentMinute = Carbon::now()->minute; // Get the current minute
         $currentSecond = Carbon::now()->second; // Get the current second
 
-        // Check if the current time is in the storeHours array and it's within the first 5 seconds of the hour
+        // Check if the current time is in the storeHours array and it's within the first 2 minutes (0th and 1st minutes) of the hour
         if (in_array($currentHour, $storeHours) && $currentMinute <= 1) {
 
             $sensorExists = Sensor::where('sensor_id', 1)->exists();
@@ -158,6 +180,16 @@ class LabRoomController extends Controller
             'temperature' => $temperature,
             'humidity' => $humidity,
         ]);
+    }
+
+
+    //Queue Email Sending method
+    public function sendEmailNotifications($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold)
+    {
+        $users = User::all(); // Assuming all users should be notified
+        foreach ($users as $user) {
+            Mail::to($user->email)->queue(new ThresholdAlert($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold));
+        }
     }
 
     // }
