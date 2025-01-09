@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Analytics Dashboard</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
         * {
@@ -13,7 +18,91 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
+        
+        .equipment-banner {
+    background: linear-gradient(to right, #EBF4FF, #FFFFFF, #EBF4FF);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
+.banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.banner-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.icon-wrapper {
+    background-color: #EBF4FF;
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.icon-wrapper i {
+    color: #3B82F6;
+    font-size: 1.5rem;
+}
+
+.text-content h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.text-content p {
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.equipment-info-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: white;
+    padding: 0.5rem 1rem;
+    border: 1px solid #BFDBFE;
+    border-radius: 0.5rem;
+    color: #3B82F6;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.equipment-info-btn:hover {
+    background-color: #EBF4FF;
+}
+
+.equipment-info-btn i {
+    transition: transform 0.2s;
+}
+
+.equipment-info-btn:hover i {
+    transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+    .banner-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .banner-info {
+        flex-direction: column;
+    }
+    
+    .equipment-info-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
         body {
             background-color: #f5f5f5;
             display: flex;
@@ -171,6 +260,31 @@
             flex-grow: 1;
             padding: 20px;
         }
+        .chart-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.equipment-info-btn {
+    background-color: #47b2ec;
+    color: #e8f0f3;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-right: 10px;
+    transition: background-color 0.3s ease, color 0.3s ease; 
+}
+
+.equipment-info-btn:hover {
+    background-color: #ffffff;
+    color:rgb(87, 157, 249)
+}
 
      
         .chart-container {
@@ -197,6 +311,7 @@
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
+            
         }
 
         .filter-group select {
@@ -237,12 +352,13 @@
     font-size: 14px;
 }
 
-        .submissions-table {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
+.submissions-table {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
 
         table {
             width: 100%;
@@ -255,13 +371,143 @@
         }
 
         .search-bar {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #000000;
-            border-radius: 4px;
-        }
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background-color: #f9fafb;
+}
+.search-bar:focus {
+    outline: none;
+    border-color: rgb(87, 157, 249);
+    box-shadow: 0 0 0 3px rgba(87, 157, 249, 0.1);
+}
+.table-responsive {
+    overflow-x: auto;
+    margin: 0 -1.5rem;
+    padding: 0 1.5rem;
+}
 
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+thead tr {
+    background-color: #f8fafc;
+}
+
+th {
+    padding: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.visitor-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.visitor-info i {
+    color: rgb(87, 157, 249);
+    font-size: 1.25rem;
+}
+
+.customer-name {
+    color: #1E293B; /* Deep slate for a modern look */
+    font-weight: 500; /* Semi-bold for emphasis */
+    text-decoration: none; /* Clean text appearance */
+    font-size: 1rem; /* Adjust font size for consistency */
+    letter-spacing: 0.5px; /* Slightly increase spacing for better readability */
+    border: 2px solid transparent; /* Invisible border for smoother focus effects */
+    border-radius: 4px; /* Rounded edges for a modern touch */
+    padding: 4px 8px; /* Add padding for a button-like feel */
+    transition: all 0.3s ease-in-out; /* Smooth transition for multiple properties */
+    display: inline-block; /* Ensures padding and hover effects apply properly */
+    cursor: pointer; /* Changes cursor to pointer for interactivity */
+}
+
+.customer-name:hover {
+    color: #579DF9; /* Vibrant blue for hover effect */
+    background-color: #F0F4FF; /* Light blue background on hover */
+    text-decoration: underline; /* Visual feedback on hover */
+    border-color: #579DF9; /* Highlight border on hover */
+    box-shadow: 0 2px 6px rgba(87, 157, 249, 0.3); /* Subtle shadow effect */
+}
+
+.customer-name:focus {
+    outline: none; /* Remove default focus outline */
+    border-color: #579DF9; /* Focus border color for accessibility */
+    box-shadow: 0 0 0 3px rgba(87, 157, 249, 0.5); /* Enhanced focus effect */
+}
+
+.institution-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    background-color: #f1f5f9;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+.purpose-tag {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    background-color: #eef2ff;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #4f46e5;
+}
+
+.delete-customer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #fee2e2;
+    border: none;
+    border-radius: 6px;
+    color: #ef4444;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-customer-btn:hover {
+    background-color: #fecaca;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .submissions-table {
+        padding: 1rem;
+    }
+
+    th, td {
+        padding: 0.75rem;
+    }
+
+    .institution-badge, .purpose-tag {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.813rem;
+    }
+}
         /* Modal Styles */
         .modal {
             display: none;
@@ -329,11 +575,6 @@
             width: 30%;
         }
 
-        .customer-name {
-            cursor: pointer;
-            color: rgb(24, 145, 182);
-            text-decoration: underline;
-        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -352,10 +593,27 @@
                 grid-template-columns: 1fr;
             }
 
-            .chart-card {
-                height: auto;
-                min-height: 300px;
-            }
+         /* Update the chart-card styling */
+.chart-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    height: 400px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.chart-heading {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
 
             .filter-container {
                 grid-template-columns: 1fr;
@@ -374,8 +632,30 @@
             }
 
             .submissions-table {
-                overflow-x: auto;
-            }
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+/* Add loading animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chart-card, .submissions-table {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+tbody tr {
+    animation: fadeIn 0.3s ease-out forwards;
+}
 
             table {
                 width: 100%;
@@ -403,6 +683,7 @@
     </style>
 </head>
 <body>
+    
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>Lab Dashboard</h2>
@@ -411,17 +692,31 @@
 
     <div class="main-content">
        
+        
+            
+        
+        <div data-aos="zoom-in-down" data-aos-duration="2000">
 
-        <div class="chart-container">
-            <div class="chart-card">
-                <h3>Equipment Usage</h3>
-                <canvas id="equipmentChart"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3>Visitor Distribution</h3>
-                <canvas id="institutionChart"></canvas>
-            </div>
-        </div>
+<div class="chart-container">
+    <div class="chart-card">
+        <h3 class="chart-heading">
+            Equipment Usage
+            <button id="show-equipment-info" class="equipment-info-btn">
+                <span>Equipment Details</span>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </h3>
+        <canvas id="equipmentChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>Visitor Distribution</h3>
+        <canvas id="institutionChart"></canvas>
+    </div>
+</div>
+</div>
+
+<div data-aos="slide-up">
+        
         <form id="filter-form" method="GET" action="{{ route('lab.analytics') }}">
             <div class="filter-container">
                 <div class="filter-group">
@@ -460,42 +755,55 @@
             </div>
         </form>
 
-  
+
         <div class="submissions-table">
             <input type="text" class="search-bar" id="search-input" placeholder="Search...">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="text-align: left;">Name</th>
-                        <th style="text-align: left;">Institution</th>
-                        <th style="text-align: left;">Purpose</th>
-                        <th style="text-align: left;">Actions</th>
-                        
-                    </tr>
-                </thead>
-                <tbody id="submissions-body">
-                    @foreach($submissions as $submission)
-                    <tr data-customer-id="{{ $submission->customer_id }}" 
-                        data-equipment="{{ $submission->equipment_used }}"
-                        data-passport-number="{{ $submission->passport_number }}">
-                        <td>
-                            <span class="customer-name" data-customer-id="{{ $submission->customer_id }}">
-                                {{ $submission->full_name }}
-                            </span>
-                        </td>
-                        <td>{{ $submission->institution }}</td>
-                        <td>{{ $submission->purpose_of_usage }}</td>
-                        <td>
-                            <button class="delete-customer-btn" data-customer-id="{{ $submission->customer_id }}">Delete</button>
-                        </td>
-                    </tr>
-                @endforeach
-                    
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding-left: 55px;">VISITOR NAME</th>
+                            <th style="text-align: left; padding-left: 12px;">INSTITUTION</th>
+                            <th style="text-align: left; padding-left: 17px;">PURPOSE</th>
+                            <th style="text-align: left; padding-left: 50px;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissions-body">
+                        @foreach($submissions as $submission)
+                        <tr data-customer-id="{{ $submission->customer_id }}"
+                            data-equipment="{{ $submission->equipment_used }}"
+                            data-passport-number="{{ $submission->passport_number }}">
+                            <td>
+                                <div class="visitor-info">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span class="customer-name" data-customer-id="{{ $submission->customer_id }}">
+                                        {{ $submission->full_name }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="institution-badge">
+                                    {{ $submission->institution }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="purpose-tag">
+                                    {{ $submission->purpose_of_usage }}
+                                </div>
+                            </td>
+                            <td>
+                                <button class="delete-customer-btn" data-customer-id="{{ $submission->customer_id }}">
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
     <!-- Customer Details Modal -->
     <div id="customerModal" class="modal">
         <div class="modal-content">
@@ -508,7 +816,42 @@
             </div>
         </div>
     </div>
-
+    <div id="equipmentInfoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Laboratory Equipment Information</h2>
+                <span class="close-equipment-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px;">
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Electron Microscopes</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">FIELD EMISSION TRANSMISSION ELECTRON MICROSCOPE (FETEM)</li>
+                            <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">DUALBEAM SCANNING ELECTRON MICROSCOPE/FOCUSED ION BEAM (FIB-SEM)</li>
+                            <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">FIELD EMISSION SCANNING ELECTRON MICROSCOPE (FESEM)</li>
+                            <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">LOW VACUUM SCANNING ELECTRON MICROSCOPE (LV-SEM)</li>
+                        </ul>
+                    </div>
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Optical Microscopes</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">3D MEASURING LASER MICROSCOPE (MLM)</li>
+                            <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">FLUORESCENCE MICROSCOPE (FM)</li>
+                            <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">DIGITAL MICROSCOPE (DM)</li>
+                            <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">STEREO ZOOM MICROSCOPE (SZM)</li>
+                        </ul>
+                    </div>
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Scanning Probe Microscopes</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">ATOMIC FORCE MICROSCOPY (AFM)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-input');
@@ -671,6 +1014,7 @@ new Chart(equipmentCtx, {
             easing: 'easeInOutQuad'
         }
     }
+    
 });
         // Institution Distribution Chart
         const institutionCtx = document.getElementById('institutionChart').getContext('2d');
@@ -827,7 +1171,7 @@ chartCards.forEach(card => {
     if (!dateTimeString) return 'N/A';
     
     try {
-        // Create a Date object from the ISO string
+        // Parse the database datetime string
         const date = new Date(dateTimeString);
         
         // Check if the date is valid
@@ -840,7 +1184,8 @@ chartCards.forEach(card => {
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: true
+            hour12: false, // Use 24-hour format to match database
+            timeZone: 'UTC'  // Explicitly use UTC to match database time
         };
         
         return date.toLocaleString('en-US', options);
@@ -849,7 +1194,6 @@ chartCards.forEach(card => {
         return 'N/A';
     }
 }
-
             // Search functionality
 const searchInput = document.getElementById('search-input');
 const submissionsBody = document.getElementById('submissions-body');
@@ -934,10 +1278,7 @@ searchInput.addEventListener('keyup', function() {
                                         <td>Equipment Used</td>
                                         <td>${customer.equipment_used}</td>
                                     </tr>
-                                    <tr>
-                                        <td>Type of Analysis</td>
-                                        <td>${customer.type_of_analysis}</td>
-                                    </tr>
+                                  
                                     <tr>
                                         <td>Supervisor Name</td>
                                         <td>${customer.supervisor_name}</td>
@@ -948,7 +1289,7 @@ searchInput.addEventListener('keyup', function() {
                                     </tr>
                                     <tr>
                                         <td>Suggestions</td>
-                                        <td>${customer.suggestions || 'N/A'}</td>
+                                        <td>${customer.suggestions || 'None'}</td>
                                     </tr>
                                     <tr>
                                         <td>Technical Issues</td>
@@ -977,6 +1318,32 @@ searchInput.addEventListener('keyup', function() {
                     modal.style.display = 'none';
                 }
             });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+    const equipmentInfoBtn = document.getElementById('show-equipment-info');
+    const equipmentModal = document.getElementById('equipmentInfoModal');
+    const closeEquipmentBtn = document.querySelector('.close-equipment-btn');
+
+    equipmentInfoBtn.addEventListener('click', function() {
+        equipmentModal.style.display = 'block';
+    });
+
+    closeEquipmentBtn.addEventListener('click', function() {
+        equipmentModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == equipmentModal) {
+            equipmentModal.style.display = 'none';
+        }
+    });
+});
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1200, // Animation duration in milliseconds
+            once: true,     // Whether animation should happen only once
         });
     </script>
 </body>
