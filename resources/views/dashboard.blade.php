@@ -28,8 +28,8 @@
             <div class="bg-white rounded-lg pb-12 px-5 pt-5 shadow mb-6 md:mx-10">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>Sensors Status: ON</span>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span>Sensors Status: Some OFF</span>
                     </div>
                     <div onclick="showNotificationModal()" id="notificationIcon" class="cursor-pointer text-gray-500">
                         <i data-feather="alert-circle"></i>
@@ -191,7 +191,7 @@
         <div id="notificationDetailModal" class="fixed inset-0 z-50 hidden">
             <!-- Overlay -->
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75"></div>
-            
+
             <!-- Center content -->
             <div class="fixed inset-0 flex items-center justify-center">
                 <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
@@ -202,12 +202,12 @@
                             <i data-feather="x"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Content -->
                     <div id="notificationDetailContent" class="px-6 py-4">
                         <!-- Content will be injected here -->
                     </div>
-                    
+
                 </div>
             </div>
         </div>
@@ -410,7 +410,7 @@
 
 
         // Fetch data every 5 seconds
-        setInterval(fetchSensor1Data, 5000);
+        setInterval(fetchSensor1Data, 3000);
 
         // Initial fetch
         fetchSensor1Data();

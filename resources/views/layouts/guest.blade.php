@@ -18,8 +18,10 @@
 </head>
 
 <body class="font-sans text-gray-900 antialiased ">
+
     <div
         class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-blue-300 to-blue-600">
+
         <div class="w-5/6 sm:max-w-md mt-6 px-6 py-4 bg-white text-gray-900 shadow-md overflow-hidden rounded-lg">
             <!-- Logo Section -->
             <div class="flex justify-center mb-4">

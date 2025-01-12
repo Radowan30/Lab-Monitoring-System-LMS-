@@ -27,7 +27,7 @@ class LabRoomController extends Controller
 
     public function show_FETEM_room()
     {
-        return view('lab_rooms.fetem$sensor');
+        return view('lab_rooms.fetem-room');
     }
 
     public function show_FETEM_chiller()
@@ -37,7 +37,7 @@ class LabRoomController extends Controller
 
     public function show_FESEM_room()
     {
-        return view('lab_rooms.fesem$sensor');
+        return view('lab_rooms.fesem-room');
     }
 
     public function show_FESEM_chiller()
@@ -46,7 +46,7 @@ class LabRoomController extends Controller
     }
 
 
-    //getsensordata function
+    //getsensordata function for generating graphs for any room
 
     public function getSensorData(Request $request)
     {
@@ -115,7 +115,7 @@ class LabRoomController extends Controller
     }
 
 
-
+    //putSensor1Info() method is to receive data from the ESP32 and put it into the database at specific times, into the cache for viewing in the dashboard through the getSensor1Info() method, and also to send all notifications
     public function putSensor1Info(Request $request)
     {
         $temperature = $request->input('temperature');
@@ -222,7 +222,7 @@ class LabRoomController extends Controller
 
                 $currentTime = Carbon::now();
 
-                // Save notification to the database
+                // Save notification to the database. This is used to show the notification in the dashboard.
                 Notification::create([
                     'message' => "Temperature and/or humidity above threshold in Room $sensor->lab_room_name. Recorded temperature: $temperature °C, humidity: $humidity%. Thresholds: temperature $tempThreshold °C, humidity $humidityThreshold%.",
                     'sensor_id' => $sensorID,
@@ -274,6 +274,24 @@ class LabRoomController extends Controller
             Mail::to($user->email)->queue(new ThresholdAlert($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold, $currentTime));
         }
     }
+
+
+
+    public function checkSensor1Status()
+    {
+        $temperature = Cache::get('sensor_1_temperature');
+        $humidity = Cache::get('sensor_1_humidity');
+
+        $isOnline = !is_null($temperature) && !is_null($humidity);
+
+        return response()->json([
+            'isOnline' => $isOnline
+        ]);
+    }
+
+
+
+
 
     // }
 

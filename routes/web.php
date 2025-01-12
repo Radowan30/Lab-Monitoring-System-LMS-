@@ -1,17 +1,34 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\LabRoomController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
+//Routes for the admin view
+Route::get('/admin', [UserController::class, 'loadAllUsers'])->name('admin.view');
+// Route::get('/add/user',[UserController::class,'loadAddUserForm']);
 
+Route::post('/add/user', [UserController::class, 'AddUser'])->name('AddUser');
+
+// Route::get('/edit/{id}',[UserController::class,'loadEditForm']);
+Route::get('/delete/{id}', [UserController::class, 'deleteUser']);
+
+Route::post('/edit/user', [UserController::class, 'EditUser'])->name('EditUser');
+
+
+
+Route::get('/sensor1-status', [LabRoomController::class, 'checkSensor1Status']);
+
+//Routes for everthing related to notifications in the dashboard
 Route::get('/notifications/unseen-count', [NotificationController::class, 'unseenCount']);
 Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/notifications/{id}', [NotificationController::class, 'show']);
 Route::post('/notifications/{id}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
 
+//Routes for getting the sensor data from the cache (get) and then showing it in the dashboard (post)
 Route::post('/dashboard/sensor1', [LabRoomController::class, 'putSensor1Info'])->name('putSensor1Info');
 Route::get('/dashboard/sensor1', [LabRoomController::class, 'getSensor1Info'])->name('getSensor1Info');
 
@@ -63,6 +80,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Route for the user-selection page
+    Route::get('/user-selection', function () {
+        return view('user-selection'); // This points to your user-selection.blade.php file
+    })->name('admin.choose-role');
+
+    // Dummy Admin Page (Replace with the actual subsystem later)
+    Route::get('/admin', function () {
+        return view('Admin');
+    })->name('admin.view');
 });
 
 require __DIR__ . '/auth.php';

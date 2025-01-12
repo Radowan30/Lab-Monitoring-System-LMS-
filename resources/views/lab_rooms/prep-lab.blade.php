@@ -28,12 +28,15 @@
                 <!-- Status Section -->
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span class="text-sm">Sensor Status: ON</span>
+                        <div id="statusIndicator" class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span id="statusText" class="text-sm">Sensor Status: OFF</span>
                     </div>
-                    <div class="flex items-center space-x-4">
+                    <div class="flex flex-col space-y-2">
                         <div class="text-sm">
-                            Latest Temperature: <span class="font-semibold">20°C</span>
+                            Latest Temperature: <span id="latestTemp" class="font-semibold">--°C</span>
+                        </div>
+                        <div class="text-sm">
+                            Latest Humidity: <span id="latestHumidity" class="font-semibold">--%</span>
                         </div>
                     </div>
                 </div>
@@ -187,6 +190,57 @@
             const endDate = document.getElementById('endDate').value;
             updateChart(viewType, startDate, endDate);
         });
+
+
+        //For the sensor symbol changing color
+        function checkSensorStatus() {
+            fetch('/sensor1-status')
+                .then(response => response.json())
+                .then(data => {
+                    const indicator = document.getElementById('statusIndicator');
+                    const statusText = document.getElementById('statusText');
+
+                    if (data.isOnline) {
+                        indicator.classList.remove('bg-red-500');
+                        indicator.classList.add('bg-green-500');
+                        statusText.textContent = 'Sensor Status: ON';
+                    } else {
+                        indicator.classList.remove('bg-green-500');
+                        indicator.classList.add('bg-red-500');
+                        statusText.textContent = 'Sensor Status: OFF';
+                    }
+                });
+        }
+
+        // Check status every 5 seconds
+        setInterval(checkSensorStatus, 5000);
+
+        // Initial check when page loads
+        document.addEventListener('DOMContentLoaded', checkSensorStatus);
+
+
+        //For the latest temperature and latest humidity to change in real time
+        function updateLatestReadings() {
+            fetch('/dashboard/sensor1')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('latestTemp').textContent = `${data.temperature}°C`;
+                    document.getElementById('latestHumidity').textContent = `${data.humidity}%`;
+                })
+                .catch(error => {
+                    console.error('Error fetching sensor data:', error);
+                    document.getElementById('latestTemp').textContent = '--°C';
+                    document.getElementById('latestHumidity').textContent = '--%';
+                });
+        }
+
+        // Update readings every 5 seconds
+        setInterval(updateLatestReadings, 3000);
+
+        // Initial update when page loads
+        document.addEventListener('DOMContentLoaded', updateLatestReadings);
+
+
         // Initialize Feather Icons
         feather.replace();
     </script>
