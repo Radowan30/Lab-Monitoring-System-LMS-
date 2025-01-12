@@ -24,6 +24,14 @@ class ReportController extends Controller
 
     public function getSensorData(Request $request)
     {
+
+        $request->validate([
+            'sensorId' => 'required|integer',
+            'viewType' => 'nullable|string|in:days,weeks,months',
+            'startDate' => 'nullable|date',
+            'endDate' => 'nullable|date|after_or_equal:startDate',
+        ]);
+
         $sensorId = $request->input('sensorId');
         $viewType = $request->input('viewType', 'days');
         $startDate = $request->input('startDate');
@@ -92,62 +100,73 @@ class ReportController extends Controller
             'limit_hum' => $limit_hum,
         ]);
     }
-
-
     public function downloadCsv(Request $request)
     {
-        // Fetch the selected lab room name and date range
-        $labRoomName = $request->input('lab_room_name');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        // Validate the request inputs
+        $request->validate([
+            'lab_room_name' => 'required|string', // Required lab room name
+            'start_date' => 'required|date',      // Start date must be a valid date
+            'end_date' => 'required|date|after_or_equal:start_date', // End date must be on/after the start date
+        ]);
 
-        // Fetch data from the sensors_data table based on the lab room name and date range
+        // Retrieve request parameters
+        $labRoomName = $request->input('lab_room_name'); // The name of the lab room
+        $startDate = $request->input('start_date');      // The start date for the filter
+        $endDate = $request->input('end_date');          // The end date for the filter
+
+        // Fetch data from the database using a join
         $data = DB::table('sensors_data')
             ->join('sensors', 'sensors.sensor_id', '=', 'sensors_data.sensor_id')
-            ->where('sensors.lab_room_name', $labRoomName)
-            ->whereBetween('sensors_data.recorded_at', [$startDate, $endDate])
-            ->select('sensors_data.temperature', 'sensors_data.humidity', 'sensors_data.recorded_at as datetime')
+            ->where('sensors.lab_room_name', $labRoomName) // Filter by lab room name
+            ->whereBetween('sensors_data.recorded_at', [$startDate, $endDate]) // Filter by date range
+            ->select(
+                'sensors_data.temperature', // Select temperature from sensors_data
+                'sensors_data.humidity',    // Select humidity from sensors_data
+                'sensors_data.recorded_at as datetime' // Select recorded_at as datetime
+            )
             ->get();
 
-        // Prepare the CSV header and rows
+        // Check if any data is returned
+        if ($data->isEmpty()) {
+            return response()->json(['error' => 'No data found for the selected parameters.'], 404);
+        }
+
+        // Generate CSV data
         $csvData = [];
-        $csvData[] = ["Lab Room: $labRoomName"]; // Add the lab room name as a heading
-        $csvData[] = ['Temperature', 'Humidity', 'DateTime']; // Add column headers
-
+        $csvData[] = ["Lab Room: $labRoomName"];
+        $csvData[] = ['Temperature', 'Humidity', 'Datetime']; // Add CSV headers
         foreach ($data as $row) {
-            $csvData[] = [$row->temperature, $row->humidity, $row->datetime];
+            $csvData[] = [$row->temperature, $row->humidity, $row->datetime]; // Add each row of data
         }
 
-        // Generate the CSV content
-        $filename = 'report.csv'; // Fixed filename
-        $csvOutput = fopen('php://output', 'w');
-        ob_start();
-
-        foreach ($csvData as $csvRow) {
-            fputcsv($csvOutput, $csvRow);
-        }
-
-        fclose($csvOutput);
-        $content = ob_get_clean();
-
-        // Return the CSV as a downloadable response
-        return response()->streamDownload(function () use ($data) {
-            $handle = fopen('php://output', 'w');
-            // Add CSV headers
-            fputcsv($handle, ['Temperature', 'Humidity', 'Datetime']);
-            // Write rows to the CSV
-            foreach ($data as $row) {
-                fputcsv($handle, [(string) $row->temperature, (string) $row->humidity, $row->datetime]);
+        // Return the CSV file as a downloadable response
+        return response()->streamDownload(function () use ($csvData) {
+            $output = fopen('php://output', 'w'); // Open PHP output stream
+            foreach ($csvData as $row) {
+                fputcsv($output, $row); // Write each row to the CSV file
             }
-            fclose($handle);
-        }, 'sensors_data.csv', ['Content-Type' => 'text/csv']);
+            fclose($output); // Close the output stream
+        }, 'sensors_data.csv', ['Content-Type' => 'text/csv']); // Return as CSV
     }
+
+
     public function generateReport(Request $request)
     {
-        $labRoomName = $request->input('labRoom');
-        $startDate = $request->input('startDate');
-        $endDate = $request->input('endDate');
-        $problemDescription = $request->input('problemDescription', 'No description provided.');
+        $labRoomName = $request->input('lab_room_name');
+        $startDate = Carbon::parse($request->input('start_date'))->toDateString();
+        $endDate = Carbon::parse($request->input('end_date'))->toDateString();
+        $problemDescription = $request->input('problemDescription');
+        $chartImage = $request->input('chartImage');
+
+        if ($chartImage) {
+            $chartImage = str_replace('data:image/png;base64,', '', $chartImage);
+        }
+
+        if (empty($problemDescription)) {
+            $problemDescription = 'No description provided.';
+        }
+
+        \Log::info('Generate Report Parameters:', compact('labRoomName', 'startDate', 'endDate'));
 
         // Query the database to fetch data
         $data = DB::table('sensors_data')
@@ -162,29 +181,45 @@ class ReportController extends Controller
             )
             ->first();
 
+        \Log::info('Query Result:', (array) $data);
+
+        // Check if the query returned data
+        if (!$data || (is_null($data->max_temp) && is_null($data->max_hum))) {
+            \Log::warning('No data found for the selected parameters.');
+            return response()->json([
+                'success' => false,
+                'message' => 'No data found for the selected parameters.'
+            ]);
+        }
+
         // Prepare the summary data
         $summary = [
+            'lab_room_name' => $labRoomName,
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'max_temp' => $data->max_temp ? round($data->max_temp, 2) : 'N/A',
-            'max_hum' => $data->max_hum ? round($data->max_hum, 2) : 'N/A',
-            'avg_temp' => $data->avg_temp ? round($data->avg_temp, 2) : 'N/A',
-            'avg_hum' => $data->avg_hum ? round($data->avg_hum, 2) : 'N/A',
+            'max_temp' => $data->max_temp !== null ? round($data->max_temp, 2) : 0,
+            'max_hum' => $data->max_hum !== null ? round($data->max_hum, 2) : 0,
+            'avg_temp' => $data->avg_temp !== null ? round($data->avg_temp, 2) : 0,
+            'avg_hum' => $data->avg_hum !== null ? round($data->avg_hum, 2) : 0,
             'problem_desc' => $problemDescription,
+            'chart_image' => $chartImage
         ];
 
-        // Return data for preview via AJAX
-        if ($request->ajax()) {
+        \Log::info('Summary Data:', $summary);
+
+        // Check if the request is for PDF or JSON
+        if ($request->expectsJson()) {
+            // Return JSON for preview
             return response()->json([
                 'success' => true,
                 'data' => $summary,
             ]);
+        } else {
+            // Generate PDF
+            $pdf = Pdf::loadView('report_pdf', compact('summary'));
+            return $pdf->download('lab_report.pdf')->header('Content-Type', 'application/pdf');
         }
-
-        // Otherwise, return the full report view
-        return view('report_pdf', compact('summary'));
     }
-
 
 
     public function getSummaryData(Request $request)
@@ -200,6 +235,26 @@ class ReportController extends Controller
             'problemDescription' => $problemDescription,
         ];
     }
+
+    public function getSensorId(Request $request)
+    {
+        $labRoomName = $request->input('lab_room_name');
+
+        // Validate lab room name
+        if (!$labRoomName) {
+            return response()->json(['error' => 'Lab room name is required.'], 400);
+        }
+
+        // Find the sensor ID
+        $sensor = Sensor::where('lab_room_name', $labRoomName)->first();
+
+        if (!$sensor) {
+            return response()->json(['error' => 'Sensor not found for the selected lab room.'], 404);
+        }
+
+        return response()->json(['sensor_id' => $sensor->sensor_id]);
+    }
+
 
 
 

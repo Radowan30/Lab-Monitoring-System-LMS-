@@ -10,4 +10,5 @@ Route::get('/download-csv', [ReportController::class, 'downloadCsv'])->name('dow
 Route::get('/generate-report', [ReportController::class, 'generateReport'])->name('generate.report');
 Route::get('/download-report-pdf', [ReportController::class, 'downloadReportPDF']);
 Route::get('summary-data', [ReportController::class, 'getSummaryData']);
+Route::get('/get-sensor-id', [ReportController::class, 'getSensorId']);
 

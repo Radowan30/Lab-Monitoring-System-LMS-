@@ -43,9 +43,10 @@
                         <select id="lab-room" name="lab_room_name"
                             class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:border-blue-500">
                             <option disabled selected >Select Lab Room</option>
-                            <option value="1">Preparation Room</option>
-                            <option value="2">FESEM Room</option>
-                            <option value="3">FETEM Room</option>
+                            <option value="FESEM">FESEM</option>
+                            <option value="FETEM">FETEM</option>
+                            <option value="Preparation Room">Preparation Room</option>
+
                         </select>
                     </div>
                     <div class="w-full md:w-1/2">
@@ -143,20 +144,13 @@
             if (startDate) params.append('startDate', startDate);
             if (endDate) params.append('endDate', endDate);
 
-    try {
+            try {
         const response = await fetch(`/sensor-data?${params.toString()}`);
         if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const data = await response.json();
-
-        if (!data.labels || data.labels.length === 0) {
-            console.warn('No data received from the server');
-            return { labels: [], temperature: [], humidity: [], limit_temp: [], limit_hum: [] };
-        }
-
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Error fetching sensor data:', error);
-        return { labels: [], temperature: [], humidity: [], limit_temp: [], limit_hum: [] }; // Fallback
+        return { labels: [], temperature: [], humidity: [], limit_temp: [], limit_hum: [] };
     }
 }
 
@@ -235,38 +229,56 @@
 
 
         // Event listener for lab-room selector
-        document.getElementById('lab-room').addEventListener('change', (e) => {
-            const labRoom = document.getElementById("lab-room").value;
-            if(!labRoom){
-                console.log("test")
-            }
-            console.log('Lab room changed', labRoom);
-            selectedSensorId = parseInt(e.target.value);
+        document.getElementById('lab-room').addEventListener('change', async (e) => {
+    const labRoom = e.target.value; // Get the selected lab room value
+    console.log('Lab room changed:', labRoom);
+
+    // Fetch the sensorId dynamically based on the selected lab room
+    const response = await fetch(`/get-sensor-id?lab_room_name=${labRoom}`);
+    const result = await response.json();
+
+    if (response.ok && result.sensor_id) {
+        selectedSensorId = result.sensor_id; // Set the selectedSensorId
+        console.log('Sensor ID:', selectedSensorId);
+
+        // Trigger chart update after sensor ID is set
+        const viewType = document.getElementById('graphView').value || 'days';
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        updateChart(viewType, selectedSensorId, startDate, endDate);
+    } else {
+        console.error('Failed to fetch sensor ID for the selected lab room.');
+    }
 });
 
 
+
        // Download CSV
-        document.getElementById("downloadCSVButton").addEventListener("click", function (event) {
-            event.preventDefault();
-            
-            // Fetch values from the inputs
-            const labRoom = document.getElementById("lab-room").value;
-            const startDate = document.getElementById("startDate").value;
-            const endDate = document.getElementById("endDate").value;
+       document.getElementById("downloadCSVButton").addEventListener("click", function (event) {
+    event.preventDefault();
 
-            if (!labRoom || !startDate || !endDate) {
-                alert("Please select a lab room and specify the date range.");
-                return;
-            }
+    // Get input values
+    const labRoom = document.getElementById("lab-room").value; // Lab room name
+    const startDate = document.getElementById("startDate").value; // Start date
+    const endDate = document.getElementById("endDate").value; // End date
 
-            const url = new URL("{{ route('download.csv') }}");
-            url.searchParams.append("lab_room_name", labRoom);
-            url.searchParams.append("start_date", startDate);
-            url.searchParams.append("end_date", endDate);
+    // Validate inputs
+    if (!labRoom || !startDate || !endDate) {
+        alert("Please select a lab room and specify the date range.");
+        return;
+    }
 
-            // Navigate to the generated URL
-            window.location.href = url.toString();
-        });
+    // Construct the URL
+    const url = new URL("{{ route('download.csv') }}");
+    url.searchParams.append("lab_room_name", labRoom);
+    url.searchParams.append("start_date", startDate);
+    url.searchParams.append("end_date", endDate);
+
+    // Navigate to the URL to download the CSV
+    window.location.href = url.toString();
+});
+
+
 
         // Initial Load: Fetch and display data for the last 7 days
         document.addEventListener('DOMContentLoaded', () => {
@@ -337,21 +349,36 @@
 
 
         // Generate Report
-        function showPdfPreviewModal() {
+        function showPdfPreviewModal(event) {
+            if (event) {
+                event.preventDefault();
+            }
     const labRoom = document.getElementById('lab-room').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
+    const problemPresent = document.getElementById('problemCheckbox').checked;
+    const problemDescription = problemPresent ? 
+        document.getElementById('problemDescription').value : 
+        'No description provided.';
+
+    const chartCanvas = document.getElementById('reportChart');
+    const chartImage = chartCanvas.toDataURL('image/png');
 
     if (!labRoom || !startDate || !endDate) {
         alert("Please select a lab room and specify the date range.");
         return;
     }
 
+
     // Construct the URL with parameters
     const url = new URL('/generate-report', window.location.origin);
     url.searchParams.append('lab_room_name', labRoom);
     url.searchParams.append('start_date', startDate);
     url.searchParams.append('end_date', endDate);
+    url.searchParams.append('problemDescription', problemDescription);
+    url.searchParams.append('chartImage', chartImage);
+
+    console.log('Fetching data from URL:', url.toString());
 
     fetch(url, { method: 'GET' })
         .then(response => response.blob())
