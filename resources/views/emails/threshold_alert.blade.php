@@ -4,4 +4,4 @@
     <li>Recorded humidity: {{ $humidity }}%</li>
     <li>Thresholds: temperature {{ $tempThreshold }}°C, humidity {{ $humidThreshold }}%</li>
 </ul>
-<p>Date and Time: {{ now() }}</p>
+<p>Date and Time: {{ $notificationTime->format('d/m/Y h:i:s A') }}</p>

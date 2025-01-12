@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Controllers\LabRoomController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
-// Route::match(['get', 'post'], '/dashboard/sensor1', [ProfileController::class, 'showSensorInfo'])->name('showSensorInfo');
 
-// Route::post('/dashboard', [ProfileController::class, 'showSensorInfo'])->name('showSensorInfo');
+Route::get('/notifications/unseen-count', [NotificationController::class, 'unseenCount']);
+Route::get('/notifications', [NotificationController::class, 'index']);
+Route::get('/notifications/{id}', [NotificationController::class, 'show']);
+Route::post('/notifications/{id}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
 
 Route::post('/dashboard/sensor1', [LabRoomController::class, 'putSensor1Info'])->name('putSensor1Info');
 Route::get('/dashboard/sensor1', [LabRoomController::class, 'getSensor1Info'])->name('getSensor1Info');

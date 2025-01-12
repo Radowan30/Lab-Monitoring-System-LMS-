@@ -18,17 +18,19 @@ class ThresholdAlert extends Mailable
     private $humidity;
     private $tempThreshold;
     private $humidThreshold;
+    private $notificationTime;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold)
+    public function __construct($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold, $notificationTime)
     {
         $this->sensor = $sensor;
         $this->temperature = $temperature;
         $this->humidity = $humidity;
         $this->tempThreshold = $tempThreshold;
         $this->humidThreshold = $humidThreshold;
+        $this->notificationTime = $notificationTime;
     }
 
     /**
@@ -55,6 +57,7 @@ class ThresholdAlert extends Mailable
                 'humidity' => $this->humidity,
                 'tempThreshold' => $this->tempThreshold,
                 'humidThreshold' => $this->humidThreshold,
+                'notificationTime' => $this->notificationTime
             ]
         );
     }

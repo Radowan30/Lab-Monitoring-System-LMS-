@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ThresholdAlert;
+use App\Models\Notification;
 use App\Models\Sensor;
 use App\Models\SensorsData;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\TelegramNotification;
 use Cache;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Log;
-use Mail;
-use Notification;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
+
 
 class LabRoomController extends Controller
 {
@@ -118,35 +121,17 @@ class LabRoomController extends Controller
         $temperature = $request->input('temperature');
         $humidity = $request->input('humidity');
         $sensorID = 1;
-        // Fetch thresholds from the database
-        $sensor = Sensor::find($sensorID);
-        $tempThreshold = $sensor->temp_threshold;
-        $humidThreshold = $sensor->humidity_threshold;
 
-        // Check thresholds
-        $isAboveThreshold = ($temperature > $tempThreshold) || ($humidity > $humidThreshold);
 
-        if ($isAboveThreshold) {
-            // Save notification to the database
-            Notification::create([
-                'message' => "Temperature and/or humidity above threshold in Room $sensor->lab_room_name. Recorded temperature: $temperature °C, humidity: $humidity%. Thresholds: temperature $tempThreshold °C, humidity $humidThreshold%.",
-                'sensor_id' => $sensorID,
-            ]);
+        // ****Store in database only at specific times****
 
-            // Queue email notifications
-            $this->sendEmailNotifications($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold);
-        }
-
-        // Store in database only at specific times
         $storeHours = [3, 9, 15, 21];  // Define the hours you want to check
 
         $currentHour = Carbon::now()->hour; // Get the current hour
         $currentMinute = Carbon::now()->minute; // Get the current minute
-        $currentSecond = Carbon::now()->second; // Get the current second
 
-        // Check if the current time is in the storeHours array and it's within the first 2 minutes (0th and 1st minutes) of the hour
+        // Check if the current time is in the storeHours array and it's within the first 2 minutes of the hour
         if (in_array($currentHour, $storeHours) && $currentMinute <= 1) {
-
             $sensorExists = Sensor::where('sensor_id', 1)->exists();
 
             if (!$sensorExists) {
@@ -163,14 +148,112 @@ class LabRoomController extends Controller
             Log::info("Data stored: temperature={$temperature}, humidity={$humidity}");
         }
 
-        Cache::put('temperature', $temperature, 60);
-        Cache::put('humidity', $humidity, 60);
+        Cache::put("sensor_{$sensorID}_temperature", $temperature, 60);
+        Cache::put("sensor_{$sensorID}_humidity", $humidity, 60);
+
+
+
+        // ****Threshold violation check****
+
+        // Retrieve threshold values from the database
+        try {
+            $sensor = Sensor::where('sensor_id', $sensorID)->firstOrFail();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => 'Sensor not found'], 404);
+        }
+
+        $tempThreshold = $sensor->temp_threshold;
+        $humidityThreshold = $sensor->humidity_threshold;
+
+        // Debugging information
+        Log::info("Sensor ID: $sensorID, Temperature: $temperature, Humidity: $humidity");
+        Log::info("Thresholds - Temperature: $tempThreshold, Humidity: $humidityThreshold");
+
+        // Cache keys
+        $violationKey = "sensor_{$sensorID}_violation_count";
+        $totalKey = "sensor_{$sensorID}_total_count";
+        $timeKey = "sensor_{$sensorID}_first_violation_time";
+
+        // Retrieve counters and timestamp from cache
+        $violationCount = Cache::get($violationKey, 0);
+        $totalCount = Cache::get($totalKey, 0);
+        $firstViolationTime = Cache::get($timeKey, null);
+
+
+        Log::info(" Violation count: $violationCount");
+
+        // Fetch thresholds from the database
+        // $sensor = Sensor::find($sensorID);
+        // $tempThreshold = $sensor->temp_threshold;
+        // $humidThreshold = $sensor->humidity_threshold;
+
+
+        // If a threshold violation occurs, update the counter and the first violation time
+        if ($temperature > $tempThreshold || $humidity > $humidityThreshold) {
+            // Increment the violation count
+            $violationCount++;
+
+            Log::info(" Violation count inside if condition: $violationCount");
+
+            // If it's the first violation, record the timestamp
+            if ($firstViolationTime === null) {
+                $firstViolationTime = Carbon::now();
+                Cache::put($timeKey, $firstViolationTime, now()->addMinutes(30));
+            }
+        }
+
+
+        // Increment the total count of readings
+        $totalCount++;
+
+        // Update counters in the cache
+        Cache::put($violationKey, $violationCount, now()->addMinutes(30));
+        Cache::put($totalKey, $totalCount, now()->addMinutes(30));
+
+        Log::info("Total count: $totalCount, Violation count: $violationCount, Violation time: $firstViolationTime, Current time: " . Carbon::now()->toDateTimeString());
+
+        // Check if 30 minutes have passed since the first violation
+        if ($firstViolationTime !== null && $firstViolationTime->diffInMinutes(Carbon::now()) >= 1) {
+
+            Log::info("One minute from the first violation. Violation count: $violationCount, Total count: $totalCount");
+
+            // Check if the majority of readings in the last 30 minutes violated the threshold
+            if ($totalCount > 0 && $violationCount > ($totalCount / 2)) {
+
+                $currentTime = Carbon::now();
+
+                // Save notification to the database
+                Notification::create([
+                    'message' => "Temperature and/or humidity above threshold in Room $sensor->lab_room_name. Recorded temperature: $temperature °C, humidity: $humidity%. Thresholds: temperature $tempThreshold °C, humidity $humidityThreshold%.",
+                    'sensor_id' => $sensorID,
+                ]);
+
+
+                //*Email Sending*
+
+                // Queue email notifications
+                $this->sendEmailNotifications($sensor, $temperature, $humidity, $tempThreshold, $humidityThreshold, $currentTime);
+
+                Log::info("Notification sent to emails.");
+
+
+                //*Telegram Sending*
+                NotificationFacade::route('telegram', '-4637386839')->notify(new TelegramNotification($sensor, $temperature, $humidity, $tempThreshold, $humidityThreshold, $currentTime));
+
+
+            }
+            // Reset counters and timestamp after the 30-minute period ends
+            Cache::forget($violationKey);
+            Cache::forget($totalKey);
+            Cache::forget($timeKey);
+        }
     }
+
 
     public function getSensor1Info(Request $request)
     {
-        $temperature = Cache::get('temperature', null);
-        $humidity = Cache::get('humidity', null);
+        $temperature = Cache::get('sensor_1_temperature', null);
+        $humidity = Cache::get('sensor_1_humidity', null);
 
         if (is_null($temperature) || is_null($humidity)) {
             return response()->json(['error' => 'No valid data in cache'], 400);
@@ -184,11 +267,11 @@ class LabRoomController extends Controller
 
 
     //Queue Email Sending method
-    public function sendEmailNotifications($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold)
+    public function sendEmailNotifications($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold, $currentTime)
     {
         $users = User::all(); // Assuming all users should be notified
         foreach ($users as $user) {
-            Mail::to($user->email)->queue(new ThresholdAlert($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold));
+            Mail::to($user->email)->queue(new ThresholdAlert($sensor, $temperature, $humidity, $tempThreshold, $humidThreshold, $currentTime));
         }
     }
 

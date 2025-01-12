@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('message');
             $table->unsignedBigInteger('sensor_id'); // Sensor ID to which the notification is related
             $table->boolean('seen')->default(false); // Whether the notification has been seen
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('sensor_id')->references('sensor_id')->on('sensors')->onDelete('cascade');
         });
