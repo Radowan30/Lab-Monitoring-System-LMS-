@@ -8,10 +8,9 @@ use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 //Routes for the admin view
-Route::get('/admin', [UserController::class, 'loadAllUsers'])->name('admin.view');
-// Route::get('/add/user',[UserController::class,'loadAddUserForm']);
-
 Route::post('/add/user', [UserController::class, 'AddUser'])->name('AddUser');
+Route::get('/adminUsers', [UserController::class, 'loadAllUsers'])->name('admin.users');
+// Route::get('/add/user',[UserController::class,'loadAddUserForm']);
 
 // Route::get('/edit/{id}',[UserController::class,'loadEditForm']);
 Route::get('/delete/{id}', [UserController::class, 'deleteUser']);
