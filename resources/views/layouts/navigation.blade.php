@@ -140,7 +140,7 @@
                 <i data-feather="file-text"></i>
                 <span>Reports</span>
             </a>
-            <a href="#" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
+            <a href="{{ route('customer-analytics') }}" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
                 <i data-feather="users"></i>
                 <span>Customer Analytics</span>
             </a>

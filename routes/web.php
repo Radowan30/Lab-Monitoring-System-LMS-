@@ -1,11 +1,13 @@
 <?php
-
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LabRoomController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\LabAnalyticsController;
+
 
 //Routes for the admin view
 Route::post('/add/user', [UserController::class, 'AddUser'])->name('AddUser');
@@ -16,7 +18,6 @@ Route::get('/adminUsers', [UserController::class, 'loadAllUsers'])->name('admin.
 Route::get('/delete/{id}', [UserController::class, 'deleteUser']);
 
 Route::post('/edit/user', [UserController::class, 'EditUser'])->name('EditUser');
-
 
 
 Route::get('/sensor1-status', [LabRoomController::class, 'checkSensor1Status']);
@@ -31,9 +32,32 @@ Route::post('/notifications/{id}/mark-as-seen', [NotificationController::class, 
 Route::post('/dashboard/sensor1', [LabRoomController::class, 'putSensor1Info'])->name('putSensor1Info');
 Route::get('/dashboard/sensor1', [LabRoomController::class, 'getSensor1Info'])->name('getSensor1Info');
 
-Route::get('/', function () {
-    return view('welcome');
+
+//Routes related to customer analytics subsystem
+Route::resource('customers', CustomerController::class);
+
+Route::get('/cust-form', function () {
+    return view('create');
 });
+
+
+Route::controller(CustomerController::class)->group(function () {
+    Route::get('/customers/create', 'create')->name('customers.create');
+    Route::post('/customers', 'store')->name('customers.store');
+});
+// Modify these routes
+// Route::get('/customer-analytics', [CustomerController::class, 'analytics'])->name('customer.analytics');
+Route::get('/api/customers/filter', [CustomerController::class, 'analytics']); // Use analytics method for filtering
+Route::get('/api/customers/{customer}', [CustomerController::class, 'show']);
+
+
+// Update the route for lab analytics
+Route::get('/lab-analytics', [LabAnalyticsController::class, 'index'])->name('lab.analytics');
+
+Route::get('/customer/{id}', [LabAnalyticsController::class, 'getCustomerDetails'])->name('customer.details');
+Route::delete('/customer/delete/{customerId}', [LabAnalyticsController::class, 'deleteCustomer']);
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
