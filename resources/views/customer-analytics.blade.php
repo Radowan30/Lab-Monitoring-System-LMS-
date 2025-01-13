@@ -1,7 +1,6 @@
 <x-app-layout>
 
 
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
         * {
@@ -96,11 +95,6 @@
             }
         }
 
-        body {
-            background-color: #f5f5f5;
-            display: flex;
-            min-height: 100vh;
-        }
 
         @keyframes zoomIn {
             from {
@@ -744,699 +738,715 @@
             }
         }
     </style>
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-64 min-h-screen">
+        <!-- Mobile Header -->
+        <header class="lg:hidden dashboard-header flex justify-between items-center">
+            <div class="w-full text-center">
+                <h1 class="text-xl font-semibold">Customer Analytics</h1>
+            </div>
+            <button onclick="toggleSidebar()" class="absolute right-4 p-2">
+                <i data-feather="more-vertical"></i>
+            </button>
+        </header>
+
+        <!-- Desktop Header -->
+        <header class="hidden lg:block dashboard-header">
+            <h1 class="text-xl font-semibold">Customer Analytics</h1>
+        </header>
+
+        <div class="p-4">
 
 
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>Lab Dashboard</h2>
-        </div>
-    </div>
 
-    <div class="main-content">
+            <div data-aos="zoom-in-down" data-aos-duration="2000">
 
-
-
-
-        <div data-aos="zoom-in-down" data-aos-duration="2000">
-
-            <div class="chart-container">
-                <div class="chart-card">
-                    <h3 class="chart-heading">
-                        Equipment Usage
-                        <button id="show-equipment-info" class="equipment-info-btn">
-                            <span>Equipment Details</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </h3>
-                    <canvas id="equipmentChart"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>Visitor Distribution</h3>
-                    <canvas id="institutionChart"></canvas>
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3 class="chart-heading">
+                            Equipment Usage
+                            <button id="show-equipment-info" class="equipment-info-btn">
+                                <span>Equipment Details</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </h3>
+                        <canvas id="equipmentChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Visitor Distribution</h3>
+                        <canvas id="institutionChart"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div data-aos="slide-up">
+            <div data-aos="slide-up">
 
-            <form id="filter-form" method="GET" action="{{ route('lab.analytics') }}">
-                <div class="filter-container">
-                    <div class="filter-group">
-                        <label for="institution-filter" style="color: white;">Institution</label>
-                        <select id="institution-filter" name="institution">
-                            <option value="">All Institutions</option>
-                            @foreach ($institutions as $institution)
-                                <option value="{{ $institution }}">{{ $institution }}</option>
-                            @endforeach
-                        </select>
+                <form id="filter-form" method="GET" action="{{ route('lab.analytics') }}">
+                    <div class="filter-container">
+                        <div class="filter-group">
+                            <label for="institution-filter" style="color: white;">Institution</label>
+                            <select id="institution-filter" name="institution">
+                                <option value="">All Institutions</option>
+                                @foreach ($institutions as $institution)
+                                    <option value="{{ $institution }}">{{ $institution }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="purpose-filter" style="color: white;">Visit Purpose</label>
+
+                            <select id="purpose-filter" name="purpose">
+                                <option value="">All Purposes</option>
+                                @foreach ($purposes as $purpose)
+                                    <option value="{{ $purpose }}">{{ $purpose }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="equipment-filter" style="color: white;">Equipment</label>
+                            <select id="equipment-filter" name="equipment">
+                                <option value="">All Equipment</option>
+                                @foreach ($equipment as $eq)
+                                    <option value="{{ $eq }}">{{ $eq }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <div class="filter-group">
-                        <label for="purpose-filter" style="color: white;">Visit Purpose</label>
-
-                        <select id="purpose-filter" name="purpose">
-                            <option value="">All Purposes</option>
-                            @foreach ($purposes as $purpose)
-                                <option value="{{ $purpose }}">{{ $purpose }}</option>
-                            @endforeach
-                        </select>
+                    <button type="submit" style="display:none;">Filter</button>
+                    <div class="filter-actions">
+                        <button type="button" id="reset-filter-btn" class="reset-filter-btn">Reset Filters</button>
+                        <button type="button" id="view-form-btn" class="reset-filter-btn"
+                            onclick="window.location.href='/cust-form'">View Form</button>
                     </div>
-                    <div class="filter-group">
-                        <label for="equipment-filter" style="color: white;">Equipment</label>
-                        <select id="equipment-filter" name="equipment">
-                            <option value="">All Equipment</option>
-                            @foreach ($equipment as $eq)
-                                <option value="{{ $eq }}">{{ $eq }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" style="display:none;">Filter</button>
-                <div class="filter-actions">
-                    <button type="button" id="reset-filter-btn" class="reset-filter-btn">Reset Filters</button>
-                    <button type="button" id="view-form-btn" class="reset-filter-btn"
-                        onclick="window.location.href='/cust-form'">View Form</button>
-                </div>
-            </form>
+                </form>
 
 
-            <div class="submissions-table">
-                <input type="text" class="search-bar" id="search-input" placeholder="Search...">
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align: left; padding-left: 55px;">VISITOR NAME</th>
-                                <th style="text-align: left; padding-left: 12px;">INSTITUTION</th>
-                                <th style="text-align: left; padding-left: 17px;">PURPOSE</th>
-                                <th style="text-align: left; padding-left: 50px;">ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="submissions-body">
-                            @foreach ($submissions as $submission)
-                                <tr data-customer-id="{{ $submission->customer_id }}"
-                                    data-equipment="{{ $submission->equipment_used }}"
-                                    data-passport-number="{{ $submission->passport_number }}">
-                                    <td>
-                                        <div class="visitor-info">
-                                            <i class="fas fa-user-circle"></i>
-                                            <span class="customer-name"
-                                                data-customer-id="{{ $submission->customer_id }}">
-                                                {{ $submission->full_name }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="institution-badge">
-                                            {{ $submission->institution }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="purpose-tag">
-                                            {{ $submission->purpose_of_usage }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <button class="delete-customer-btn"
-                                            data-customer-id="{{ $submission->customer_id }}">
-                                            <i class="fas fa-trash"></i>
-                                            Delete
-                                        </button>
-                                    </td>
+                <div class="submissions-table">
+                    <input type="text" class="search-bar" id="search-input" placeholder="Search...">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding-left: 55px;">VISITOR NAME</th>
+                                    <th style="text-align: left; padding-left: 12px;">INSTITUTION</th>
+                                    <th style="text-align: left; padding-left: 17px;">PURPOSE</th>
+                                    <th style="text-align: left; padding-left: 50px;">ACTIONS</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="submissions-body">
+                                @foreach ($submissions as $submission)
+                                    <tr data-customer-id="{{ $submission->customer_id }}"
+                                        data-equipment="{{ $submission->equipment_used }}"
+                                        data-passport-number="{{ $submission->passport_number }}">
+                                        <td>
+                                            <div class="visitor-info">
+                                                <i class="fas fa-user-circle"></i>
+                                                <span class="customer-name"
+                                                    data-customer-id="{{ $submission->customer_id }}">
+                                                    {{ $submission->full_name }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="institution-badge">
+                                                {{ $submission->institution }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="purpose-tag">
+                                                {{ $submission->purpose_of_usage }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="delete-customer-btn"
+                                                data-customer-id="{{ $submission->customer_id }}">
+                                                <i class="fas fa-trash"></i>
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- Customer Details Modal -->
-        <div id="customerModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Customer Details</h2>
-                    <span class="close-btn">&times;</span>
-                </div>
-                <div class="modal-body" id="customerModalBody">
-                    <!-- Customer details will be dynamically inserted here -->
+            <!-- Customer Details Modal -->
+            <div id="customerModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Customer Details</h2>
+                        <span class="close-btn">&times;</span>
+                    </div>
+                    <div class="modal-body" id="customerModalBody">
+                        <!-- Customer details will be dynamically inserted here -->
+                    </div>
                 </div>
             </div>
-        </div>
-        <div id="equipmentInfoModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Laboratory Equipment Information</h2>
-                    <span class="close-equipment-btn">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px;">
+            <div id="equipmentInfoModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Laboratory Equipment Information</h2>
+                        <span class="close-equipment-btn">&times;</span>
+                    </div>
+                    <div class="modal-body">
                         <div
-                            style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Electron
-                                Microscopes</h3>
-                            <ul style="list-style: none; padding: 0;">
-                                <li
-                                    style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
-                                    FIELD EMISSION TRANSMISSION ELECTRON MICROSCOPE (FETEM)</li>
-                                <li
-                                    style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
-                                    DUALBEAM SCANNING ELECTRON MICROSCOPE/FOCUSED ION BEAM (FIB-SEM)</li>
-                                <li
-                                    style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
-                                    FIELD EMISSION SCANNING ELECTRON MICROSCOPE (FESEM)</li>
-                                <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">LOW VACUUM SCANNING
-                                    ELECTRON MICROSCOPE (LV-SEM)</li>
-                            </ul>
-                        </div>
-                        <div
-                            style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Optical
-                                Microscopes</h3>
-                            <ul style="list-style: none; padding: 0;">
-                                <li
-                                    style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
-                                    3D MEASURING LASER MICROSCOPE (MLM)</li>
-                                <li
-                                    style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
-                                    FLUORESCENCE MICROSCOPE (FM)</li>
-                                <li
-                                    style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
-                                    DIGITAL MICROSCOPE (DM)</li>
-                                <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">STEREO ZOOM MICROSCOPE
-                                    (SZM)</li>
-                            </ul>
-                        </div>
-                        <div
-                            style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Scanning Probe
-                                Microscopes</h3>
-                            <ul style="list-style: none; padding: 0;">
-                                <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">ATOMIC FORCE MICROSCOPY
-                                    (AFM)</li>
-                            </ul>
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px;">
+                            <div
+                                style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Electron
+                                    Microscopes</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li
+                                        style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
+                                        FIELD EMISSION TRANSMISSION ELECTRON MICROSCOPE (FETEM)</li>
+                                    <li
+                                        style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
+                                        DUALBEAM SCANNING ELECTRON MICROSCOPE/FOCUSED ION BEAM (FIB-SEM)</li>
+                                    <li
+                                        style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
+                                        FIELD EMISSION SCANNING ELECTRON MICROSCOPE (FESEM)</li>
+                                    <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">LOW VACUUM SCANNING
+                                        ELECTRON MICROSCOPE (LV-SEM)</li>
+                                </ul>
+                            </div>
+                            <div
+                                style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Optical
+                                    Microscopes</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li
+                                        style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
+                                        3D MEASURING LASER MICROSCOPE (MLM)</li>
+                                    <li
+                                        style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
+                                        FLUORESCENCE MICROSCOPE (FM)</li>
+                                    <li
+                                        style="padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 0.9em; line-height: 1.4;">
+                                        DIGITAL MICROSCOPE (DM)</li>
+                                    <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">STEREO ZOOM
+                                        MICROSCOPE
+                                        (SZM)</li>
+                                </ul>
+                            </div>
+                            <div
+                                style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: rgb(87, 157, 249); margin-bottom: 15px; font-size: 1.2em;">Scanning
+                                    Probe
+                                    Microscopes</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="padding: 8px 0; font-size: 0.9em; line-height: 1.4;">ATOMIC FORCE
+                                        MICROSCOPY
+                                        (AFM)</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const searchInput = document.getElementById('search-input');
-                const submissionsBody = document.getElementById('submissions-body');
-                const institutionFilter = document.getElementById('institution-filter');
-                const purposeFilter = document.getElementById('purpose-filter');
-                const equipmentFilter = document.getElementById('equipment-filter');
-                const resetFilterBtn = document.getElementById('reset-filter-btn');
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const searchInput = document.getElementById('search-input');
+                    const submissionsBody = document.getElementById('submissions-body');
+                    const institutionFilter = document.getElementById('institution-filter');
+                    const purposeFilter = document.getElementById('purpose-filter');
+                    const equipmentFilter = document.getElementById('equipment-filter');
+                    const resetFilterBtn = document.getElementById('reset-filter-btn');
 
-                function filterTable() {
-                    const rows = submissionsBody.querySelectorAll('tr');
-                    const searchTerm = searchInput.value.toLowerCase();
-                    const institutionTerm = institutionFilter.value.toLowerCase();
-                    const purposeTerm = purposeFilter.value.toLowerCase();
-                    const equipmentTerm = equipmentFilter.value.toLowerCase();
+                    function filterTable() {
+                        const rows = submissionsBody.querySelectorAll('tr');
+                        const searchTerm = searchInput.value.toLowerCase();
+                        const institutionTerm = institutionFilter.value.toLowerCase();
+                        const purposeTerm = purposeFilter.value.toLowerCase();
+                        const equipmentTerm = equipmentFilter.value.toLowerCase();
 
-                    rows.forEach(row => {
-                        const nameCell = row.cells[0].textContent.toLowerCase();
-                        const institutionCell = row.cells[1].textContent.toLowerCase();
-                        const purposeCell = row.cells[2].textContent.toLowerCase();
+                        rows.forEach(row => {
+                            const nameCell = row.cells[0].textContent.toLowerCase();
+                            const institutionCell = row.cells[1].textContent.toLowerCase();
+                            const purposeCell = row.cells[2].textContent.toLowerCase();
 
-                        const searchMatch = nameCell.includes(searchTerm) ||
-                            institutionCell.includes(searchTerm) ||
-                            purposeCell.includes(searchTerm);
+                            const searchMatch = nameCell.includes(searchTerm) ||
+                                institutionCell.includes(searchTerm) ||
+                                purposeCell.includes(searchTerm);
 
-                        const institutionFilter = institutionTerm === '' || institutionCell.includes(
-                            institutionTerm);
-                        const purposeFilter = purposeTerm === '' || purposeCell.includes(purposeTerm);
-                        const equipmentFilter = equipmentTerm === '' ||
-                            (row.getAttribute('data-equipment') &&
-                                row.getAttribute('data-equipment').toLowerCase().includes(equipmentTerm));
+                            const institutionFilter = institutionTerm === '' || institutionCell.includes(
+                                institutionTerm);
+                            const purposeFilter = purposeTerm === '' || purposeCell.includes(purposeTerm);
+                            const equipmentFilter = equipmentTerm === '' ||
+                                (row.getAttribute('data-equipment') &&
+                                    row.getAttribute('data-equipment').toLowerCase().includes(equipmentTerm));
 
-                        row.style.display = (searchMatch && institutionFilter && purposeFilter &&
-                            equipmentFilter) ? '' : 'none';
-                    });
-                }
-
-                // Add event listeners
-                searchInput.addEventListener('keyup', filterTable);
-                institutionFilter.addEventListener('change', filterTable);
-                purposeFilter.addEventListener('change', filterTable);
-                equipmentFilter.addEventListener('change', filterTable);
-
-                // Reset button functionality
-                resetFilterBtn.addEventListener('click', function() {
-                    searchInput.value = '';
-                    institutionFilter.selectedIndex = 0;
-                    purposeFilter.selectedIndex = 0;
-                    equipmentFilter.selectedIndex = 0;
-
-                    const rows = submissionsBody.querySelectorAll('tr');
-                    rows.forEach(row => {
-                        row.style.display = '';
-                    });
-                });
-            });
-
-            document.addEventListener('DOMContentLoaded', function() {
-                const equipmentUsage = @json($equipmentUsage);
-                const institutionDistribution = @json($institutionDistribution);
-
-                // Equipment Usage Chart - Now a Bar Graph
-                const equipmentCtx = document.getElementById('equipmentChart').getContext('2d');
-                new Chart(equipmentCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(equipmentUsage),
-                        datasets: [{
-                            label: 'Equipment Usage',
-                            data: Object.values(equipmentUsage),
-                            backgroundColor: [
-                                'rgba(44, 123, 229, 0.7)', // Professional blue
-                                'rgba(70, 190, 194, 0.7)', // Teal blue
-                                'rgba(102, 126, 234, 0.7)', // Soft indigo
-                                'rgba(41, 128, 185, 0.7)', // Deeper blue
-                                'rgba(52, 152, 219, 0.7)' // Bright blue
-                            ],
-                            borderColor: [
-                                'rgba(44, 123, 229, 1)',
-                                'rgba(70, 190, 194, 1)',
-                                'rgba(102, 126, 234, 1)',
-                                'rgba(41, 128, 185, 1)',
-                                'rgba(52, 152, 219, 1)'
-                            ],
-                            borderWidth: 1,
-                            borderRadius: 5
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: {
-                            padding: {
-                                left: 10,
-                                right: 10,
-                                top: 10,
-                                bottom: 10
-                            }
-                        },
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Equipment Usage Analysis',
-                                font: {
-                                    size: 16,
-                                    weight: '600',
-                                    family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
-                                },
-                                color: '#333'
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0,0,0,0.8)',
-                                titleFont: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                bodyFont: {
-                                    size: 12
-                                },
-                                cornerRadius: 4,
-                                padding: 8
-                            },
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Number of Uses',
-                                    font: {
-                                        size: 12,
-                                        weight: '500'
-                                    },
-                                    color: '#555'
-                                },
-                                grid: {
-                                    color: 'rgba(0,0,0,0.05)',
-                                    borderDash: [5, 5]
-                                },
-                                ticks: {
-                                    precision: 0,
-                                    color: '#666'
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    color: '#666',
-                                    font: {
-                                        weight: '500'
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            duration: 1200,
-                            easing: 'easeInOutQuad'
-                        }
+                            row.style.display = (searchMatch && institutionFilter && purposeFilter &&
+                                equipmentFilter) ? '' : 'none';
+                        });
                     }
 
+                    // Add event listeners
+                    searchInput.addEventListener('keyup', filterTable);
+                    institutionFilter.addEventListener('change', filterTable);
+                    purposeFilter.addEventListener('change', filterTable);
+                    equipmentFilter.addEventListener('change', filterTable);
+
+                    // Reset button functionality
+                    resetFilterBtn.addEventListener('click', function() {
+                        searchInput.value = '';
+                        institutionFilter.selectedIndex = 0;
+                        purposeFilter.selectedIndex = 0;
+                        equipmentFilter.selectedIndex = 0;
+
+                        const rows = submissionsBody.querySelectorAll('tr');
+                        rows.forEach(row => {
+                            row.style.display = '';
+                        });
+                    });
                 });
-                // Institution Distribution Chart
-                const institutionCtx = document.getElementById('institutionChart').getContext('2d');
-                new Chart(institutionCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(institutionDistribution),
-                        datasets: [{
-                            label: 'Visitor Distribution',
-                            data: Object.values(institutionDistribution),
-                            backgroundColor: [
-                                'rgba(41, 128, 185, 0.7)', // Professional blue
-                                'rgba(70, 190, 194, 0.7)', // Teal blue
-                                'rgba(102, 126, 234, 0.7)', // Soft indigo
-                                'rgba(44, 123, 229, 0.7)', // Bright blue
-                                'rgba(52, 152, 219, 0.7)' // Lighter blue
-                            ],
-                            borderColor: [
-                                'rgba(41, 128, 185, 1)',
-                                'rgba(70, 190, 194, 1)',
-                                'rgba(102, 126, 234, 1)',
-                                'rgba(44, 123, 229, 1)',
-                                'rgba(52, 152, 219, 1)'
-                            ],
-                            borderWidth: 1,
-                            borderRadius: 5
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: {
-                            padding: {
-                                left: 10,
-                                right: 10,
-                                top: 10,
-                                bottom: 10
-                            }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    const equipmentUsage = @json($equipmentUsage);
+                    const institutionDistribution = @json($institutionDistribution);
+
+                    // Equipment Usage Chart - Now a Bar Graph
+                    const equipmentCtx = document.getElementById('equipmentChart').getContext('2d');
+                    new Chart(equipmentCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(equipmentUsage),
+                            datasets: [{
+                                label: 'Equipment Usage',
+                                data: Object.values(equipmentUsage),
+                                backgroundColor: [
+                                    'rgba(44, 123, 229, 0.7)', // Professional blue
+                                    'rgba(70, 190, 194, 0.7)', // Teal blue
+                                    'rgba(102, 126, 234, 0.7)', // Soft indigo
+                                    'rgba(41, 128, 185, 0.7)', // Deeper blue
+                                    'rgba(52, 152, 219, 0.7)' // Bright blue
+                                ],
+                                borderColor: [
+                                    'rgba(44, 123, 229, 1)',
+                                    'rgba(70, 190, 194, 1)',
+                                    'rgba(102, 126, 234, 1)',
+                                    'rgba(41, 128, 185, 1)',
+                                    'rgba(52, 152, 219, 1)'
+                                ],
+                                borderWidth: 1,
+                                borderRadius: 5
+                            }]
                         },
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Institutional Visitor Analysis',
-                                font: {
-                                    size: 16,
-                                    weight: '600',
-                                    family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
-                                },
-                                color: '#333'
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: 10,
+                                    right: 10,
+                                    top: 10,
+                                    bottom: 10
+                                }
                             },
-                            tooltip: {
-                                backgroundColor: 'rgba(0,0,0,0.8)',
-                                titleFont: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                bodyFont: {
-                                    size: 12
-                                },
-                                cornerRadius: 4,
-                                padding: 8
-                            },
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
+                            plugins: {
                                 title: {
                                     display: true,
-                                    text: 'Number of Visitors',
+                                    text: 'Equipment Usage Analysis',
                                     font: {
-                                        size: 12,
-                                        weight: '500'
+                                        size: 16,
+                                        weight: '600',
+                                        family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
                                     },
-                                    color: '#555'
+                                    color: '#333'
                                 },
-                                grid: {
-                                    color: 'rgba(0,0,0,0.05)',
-                                    borderDash: [5, 5]
+                                tooltip: {
+                                    backgroundColor: 'rgba(0,0,0,0.8)',
+                                    titleFont: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    bodyFont: {
+                                        size: 12
+                                    },
+                                    cornerRadius: 4,
+                                    padding: 8
                                 },
-                                ticks: {
-                                    precision: 0,
-                                    color: '#666'
+                                legend: {
+                                    display: false
                                 }
                             },
-                            x: {
-                                grid: {
-                                    display: false
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Uses',
+                                        font: {
+                                            size: 12,
+                                            weight: '500'
+                                        },
+                                        color: '#555'
+                                    },
+                                    grid: {
+                                        color: 'rgba(0,0,0,0.05)',
+                                        borderDash: [5, 5]
+                                    },
+                                    ticks: {
+                                        precision: 0,
+                                        color: '#666'
+                                    }
                                 },
-                                ticks: {
-                                    color: '#666',
-                                    font: {
-                                        weight: '500'
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            duration: 1200,
-                            easing: 'easeInOutQuad'
-                        }
-                    }
-                });
-
-                // Additional Chart Card Styling
-                const chartCards = document.querySelectorAll('.chart-card');
-                chartCards.forEach(card => {
-                    card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                    card.style.border = '1px solid rgba(0,0,0,0.1)';
-                    card.style.borderRadius = '8px';
-                });
-
-
-
-                // Delete Customer functionality
-                const deleteButtons = document.querySelectorAll('.delete-customer-btn');
-
-                deleteButtons.forEach(button => {
-                    button.addEventListener('click', function() {
-                        const customerId = this.getAttribute('data-customer-id');
-
-                        if (confirm('Are you sure you want to delete this customer record?')) {
-                            fetch(`/customer/delete/${customerId}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').getAttribute('content'),
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        // Remove the row from the table
-                                        const row = document.querySelector(
-                                            `tr[data-customer-id="${customerId}"]`);
-                                        if (row) {
-                                            row.remove();
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#666',
+                                        font: {
+                                            weight: '500'
                                         }
-                                        alert('Customer deleted successfully');
-                                    } else {
-                                        alert('Failed to delete customer');
                                     }
+                                }
+                            },
+                            animation: {
+                                duration: 1200,
+                                easing: 'easeInOutQuad'
+                            }
+                        }
+
+                    });
+                    // Institution Distribution Chart
+                    const institutionCtx = document.getElementById('institutionChart').getContext('2d');
+                    new Chart(institutionCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(institutionDistribution),
+                            datasets: [{
+                                label: 'Visitor Distribution',
+                                data: Object.values(institutionDistribution),
+                                backgroundColor: [
+                                    'rgba(41, 128, 185, 0.7)', // Professional blue
+                                    'rgba(70, 190, 194, 0.7)', // Teal blue
+                                    'rgba(102, 126, 234, 0.7)', // Soft indigo
+                                    'rgba(44, 123, 229, 0.7)', // Bright blue
+                                    'rgba(52, 152, 219, 0.7)' // Lighter blue
+                                ],
+                                borderColor: [
+                                    'rgba(41, 128, 185, 1)',
+                                    'rgba(70, 190, 194, 1)',
+                                    'rgba(102, 126, 234, 1)',
+                                    'rgba(44, 123, 229, 1)',
+                                    'rgba(52, 152, 219, 1)'
+                                ],
+                                borderWidth: 1,
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: 10,
+                                    right: 10,
+                                    top: 10,
+                                    bottom: 10
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Institutional Visitor Analysis',
+                                    font: {
+                                        size: 16,
+                                        weight: '600',
+                                        family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
+                                    },
+                                    color: '#333'
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0,0,0,0.8)',
+                                    titleFont: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    bodyFont: {
+                                        size: 12
+                                    },
+                                    cornerRadius: 4,
+                                    padding: 8
+                                },
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Visitors',
+                                        font: {
+                                            size: 12,
+                                            weight: '500'
+                                        },
+                                        color: '#555'
+                                    },
+                                    grid: {
+                                        color: 'rgba(0,0,0,0.05)',
+                                        borderDash: [5, 5]
+                                    },
+                                    ticks: {
+                                        precision: 0,
+                                        color: '#666'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#666',
+                                        font: {
+                                            weight: '500'
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 1200,
+                                easing: 'easeInOutQuad'
+                            }
+                        }
+                    });
+
+                    // Additional Chart Card Styling
+                    const chartCards = document.querySelectorAll('.chart-card');
+                    chartCards.forEach(card => {
+                        card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                        card.style.border = '1px solid rgba(0,0,0,0.1)';
+                        card.style.borderRadius = '8px';
+                    });
+
+
+
+                    // Delete Customer functionality
+                    const deleteButtons = document.querySelectorAll('.delete-customer-btn');
+
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            const customerId = this.getAttribute('data-customer-id');
+
+                            if (confirm('Are you sure you want to delete this customer record?')) {
+                                fetch(`/customer/delete/${customerId}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]').getAttribute('content'),
+                                            'Content-Type': 'application/json'
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // Remove the row from the table
+                                            const row = document.querySelector(
+                                                `tr[data-customer-id="${customerId}"]`);
+                                            if (row) {
+                                                row.remove();
+                                            }
+                                            alert('Customer deleted successfully');
+                                        } else {
+                                            alert('Failed to delete customer');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('An error occurred while deleting the customer');
+                                    });
+                            }
+                        });
+                    });
+
+                    function formatDateTime(dateTimeString) {
+                        if (!dateTimeString) return 'N/A';
+
+                        try {
+                            // Parse the database datetime string
+                            const date = new Date(dateTimeString);
+
+                            // Check if the date is valid
+                            if (isNaN(date.getTime())) return 'N/A';
+
+                            // Format options for a readable date and time
+                            const options = {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false, // Use 24-hour format to match database
+                                timeZone: 'UTC' // Explicitly use UTC to match database time
+                            };
+
+                            return date.toLocaleString('en-US', options);
+                        } catch (error) {
+                            console.error('Error formatting date:', error);
+                            return 'N/A';
+                        }
+                    }
+                    // Search functionality
+                    const searchInput = document.getElementById('search-input');
+                    const submissionsBody = document.getElementById('submissions-body');
+
+                    searchInput.addEventListener('keyup', function() {
+                        const searchValue = this.value.toLowerCase();
+                        const rows = submissionsBody.querySelectorAll('tr');
+
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            const passportNumber = row.getAttribute('data-passport-number') || '';
+
+                            const match = Array.from(cells).some(cell =>
+                                cell.textContent.toLowerCase().includes(searchValue)
+                            ) || passportNumber.toLowerCase().includes(searchValue);
+
+                            row.style.display = match ? '' : 'none';
+                        });
+                    });
+                    // Customer Details Modal Logic
+                    const customerNames = document.querySelectorAll('.customer-name');
+                    const modal = document.getElementById('customerModal');
+                    const modalBody = document.getElementById('customerModalBody');
+                    const closeBtn = document.querySelector('.close-btn');
+
+                    customerNames.forEach(name => {
+                        name.addEventListener('click', function() {
+                            const customerId = this.getAttribute('data-customer-id');
+
+                            // Fetch customer details
+                            fetch(`/customer/${customerId}`)
+                                .then(response => response.json())
+                                .then(customer => {
+                                    // Create a detailed view of customer information
+                                    const detailsHTML = `
+                                    <table>
+                                        <tr>
+                                            <td>Full Name</td>
+                                            <td>${customer.full_name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Passport Number</td>
+                                            <td>${customer.passport_number}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Institution</td>
+                                            <td>${customer.institution}</td>
+                                        </tr>
+                                                <tr>
+                <td>Specific Institution</td>
+                <td>${customer.specific_institution || 'N/A'}</td>
+            </tr>
+                                        <tr>
+                                            <td>Position</td>
+                                            <td>${customer.position}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Phone Number</td>
+                                            <td>${customer.phone_number}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Email</td>
+                                            <td>${customer.email}</td>
+                                        </tr>
+                                         <tr>
+                <td>Entry Date/Time</td>
+                <td>${formatDateTime(customer.entry_datetime)}</td>
+            </tr>
+            <tr>
+                <td>Exit Date/Time</td>
+                <td>${formatDateTime(customer.exit_datetime)}</td>
+            </tr>
+                                        <tr>
+                                            <td>Purpose of Usage</td>
+                                            <td>${customer.purpose_of_usage}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Purpose Description</td>
+                                            <td>${customer.purpose_description}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Equipment Used</td>
+                                            <td>${customer.equipment_used}</td>
+                                        </tr>
+                                      
+                                        <tr>
+                                            <td>Supervisor Name</td>
+                                            <td>${customer.supervisor_name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Usage Duration</td>
+                                            <td>${customer.usage_duration} hours</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Suggestions</td>
+                                            <td>${customer.suggestions || 'None'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Technical Issues</td>
+                                            <td>${customer.technical_issues || 'None'}</td>
+                                        </tr>
+                                    </table>
+                                `;
+
+                                    modalBody.innerHTML = detailsHTML;
+                                    modal.style.display = 'block';
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('An error occurred while deleting the customer');
+                                    console.error('Error fetching customer details:', error);
                                 });
+                        });
+                    });
+
+                    // Close modal when clicking the close button
+                    closeBtn.addEventListener('click', function() {
+                        modal.style.display = 'none';
+                    });
+
+                    // Close modal when clicking outside of it
+                    window.addEventListener('click', function(event) {
+                        if (event.target == modal) {
+                            modal.style.display = 'none';
                         }
                     });
                 });
+                document.addEventListener('DOMContentLoaded', function() {
+                    const equipmentInfoBtn = document.getElementById('show-equipment-info');
+                    const equipmentModal = document.getElementById('equipmentInfoModal');
+                    const closeEquipmentBtn = document.querySelector('.close-equipment-btn');
 
-                function formatDateTime(dateTimeString) {
-                    if (!dateTimeString) return 'N/A';
-
-                    try {
-                        // Parse the database datetime string
-                        const date = new Date(dateTimeString);
-
-                        // Check if the date is valid
-                        if (isNaN(date.getTime())) return 'N/A';
-
-                        // Format options for a readable date and time
-                        const options = {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false, // Use 24-hour format to match database
-                            timeZone: 'UTC' // Explicitly use UTC to match database time
-                        };
-
-                        return date.toLocaleString('en-US', options);
-                    } catch (error) {
-                        console.error('Error formatting date:', error);
-                        return 'N/A';
-                    }
-                }
-                // Search functionality
-                const searchInput = document.getElementById('search-input');
-                const submissionsBody = document.getElementById('submissions-body');
-
-                searchInput.addEventListener('keyup', function() {
-                    const searchValue = this.value.toLowerCase();
-                    const rows = submissionsBody.querySelectorAll('tr');
-
-                    rows.forEach(row => {
-                        const cells = row.querySelectorAll('td');
-                        const passportNumber = row.getAttribute('data-passport-number') || '';
-
-                        const match = Array.from(cells).some(cell =>
-                            cell.textContent.toLowerCase().includes(searchValue)
-                        ) || passportNumber.toLowerCase().includes(searchValue);
-
-                        row.style.display = match ? '' : 'none';
+                    equipmentInfoBtn.addEventListener('click', function() {
+                        equipmentModal.style.display = 'block';
                     });
-                });
-                // Customer Details Modal Logic
-                const customerNames = document.querySelectorAll('.customer-name');
-                const modal = document.getElementById('customerModal');
-                const modalBody = document.getElementById('customerModalBody');
-                const closeBtn = document.querySelector('.close-btn');
 
-                customerNames.forEach(name => {
-                    name.addEventListener('click', function() {
-                        const customerId = this.getAttribute('data-customer-id');
-
-                        // Fetch customer details
-                        fetch(`/customer/${customerId}`)
-                            .then(response => response.json())
-                            .then(customer => {
-                                // Create a detailed view of customer information
-                                const detailsHTML = `
-                                <table>
-                                    <tr>
-                                        <td>Full Name</td>
-                                        <td>${customer.full_name}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Passport Number</td>
-                                        <td>${customer.passport_number}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Institution</td>
-                                        <td>${customer.institution}</td>
-                                    </tr>
-                                            <tr>
-            <td>Specific Institution</td>
-            <td>${customer.specific_institution || 'N/A'}</td>
-        </tr>
-                                    <tr>
-                                        <td>Position</td>
-                                        <td>${customer.position}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Phone Number</td>
-                                        <td>${customer.phone_number}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Email</td>
-                                        <td>${customer.email}</td>
-                                    </tr>
-                                     <tr>
-            <td>Entry Date/Time</td>
-            <td>${formatDateTime(customer.entry_datetime)}</td>
-        </tr>
-        <tr>
-            <td>Exit Date/Time</td>
-            <td>${formatDateTime(customer.exit_datetime)}</td>
-        </tr>
-                                    <tr>
-                                        <td>Purpose of Usage</td>
-                                        <td>${customer.purpose_of_usage}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Purpose Description</td>
-                                        <td>${customer.purpose_description}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Equipment Used</td>
-                                        <td>${customer.equipment_used}</td>
-                                    </tr>
-                                  
-                                    <tr>
-                                        <td>Supervisor Name</td>
-                                        <td>${customer.supervisor_name}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Usage Duration</td>
-                                        <td>${customer.usage_duration} hours</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Suggestions</td>
-                                        <td>${customer.suggestions || 'None'}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Technical Issues</td>
-                                        <td>${customer.technical_issues || 'None'}</td>
-                                    </tr>
-                                </table>
-                            `;
-
-                                modalBody.innerHTML = detailsHTML;
-                                modal.style.display = 'block';
-                            })
-                            .catch(error => {
-                                console.error('Error fetching customer details:', error);
-                            });
-                    });
-                });
-
-                // Close modal when clicking the close button
-                closeBtn.addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
-
-                // Close modal when clicking outside of it
-                window.addEventListener('click', function(event) {
-                    if (event.target == modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-            document.addEventListener('DOMContentLoaded', function() {
-                const equipmentInfoBtn = document.getElementById('show-equipment-info');
-                const equipmentModal = document.getElementById('equipmentInfoModal');
-                const closeEquipmentBtn = document.querySelector('.close-equipment-btn');
-
-                equipmentInfoBtn.addEventListener('click', function() {
-                    equipmentModal.style.display = 'block';
-                });
-
-                closeEquipmentBtn.addEventListener('click', function() {
-                    equipmentModal.style.display = 'none';
-                });
-
-                window.addEventListener('click', function(event) {
-                    if (event.target == equipmentModal) {
+                    closeEquipmentBtn.addEventListener('click', function() {
                         equipmentModal.style.display = 'none';
-                    }
-                });
-            });
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-        <script>
-            AOS.init({
-                duration: 1200, // Animation duration in milliseconds
-                once: true, // Whether animation should happen only once
-            });
-        </script>
+                    });
 
-<x-app-layout>
+                    window.addEventListener('click', function(event) {
+                        if (event.target == equipmentModal) {
+                            equipmentModal.style.display = 'none';
+                        }
+                    });
+                });
+            </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+            <script>
+                AOS.init({
+                    duration: 1200, // Animation duration in milliseconds
+                    once: true, // Whether animation should happen only once
+                });
+            </script>
+        </div>
+
+
+
+    </main>
+
+</x-app-layout>

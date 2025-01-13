@@ -1,4 +1,4 @@
-<!DOCTYPE <meta name="csrf-token" content="{{ csrf_token() }}">html>
+<!DOCTYPE <meta name="csrf-token" content="{{ csrf_token() }}">
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
