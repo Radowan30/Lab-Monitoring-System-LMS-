@@ -1,61 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Lab Report</title>
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 20px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        th {
-            background-color: #f2f2f2;
+        .report-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
-        .graph-container {
-            margin: 20px 0;
+        .summary-section {
+            margin-bottom: 30px;
+        }
+        .summary-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c5282;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .data-item {
+            margin-bottom: 10px;
+        }
+        .label {
+            font-weight: bold;
+            color: #4a5568;
+        }
+        .graph-section {
+            margin-top: 30px;
             text-align: center;
         }
-        .graph-container img {
+        .graph-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c5282;
+        }
+        .graph-image {
             max-width: 100%;
             height: auto;
+            margin: 0 auto;
+        }
+        .problems-section {
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
-    <h1>Lab Report</h1>
-    
-    <p><strong>Lab Room:</strong> {{ $summary['lab_room_name'] }}</p>
-    <p><strong>Start Date:</strong> {{ $summary['start_date'] }}</p>
-    <p><strong>End Date:</strong> {{ $summary['end_date'] }}</p>
-
-    <h2>Temperature and Humidity Graph</h2>
-    <div class="graph-container">
-        @if($summary['chart_image'])
-            <img src="data:image/png;base64,{{ $summary['chart_image'] }}" alt="Temperature and Humidity Graph">
-        @endif
+    <div class="header">
+        <div class="report-title">Lab Report</div>
+        <div>Generated on {{ date('Y-m-d H:i:s') }}</div>
     </div>
 
-    <h2>Summary Statistics</h2>
-    <table>
-        <tr>
-            <th>Max Temperature</th>
-            <th>Max Humidity</th>
-            <th>Avg Temperature</th>
-            <th>Avg Humidity</th>
-        </tr>
-        <tr>
-            <td>{{ $summary['max_temp'] }} °C</td>
-            <td>{{ $summary['max_hum'] }} %</td>
-            <td>{{ $summary['avg_temp'] }} °C</td>
-            <td>{{ $summary['avg_hum'] }} %</td>
-        </tr>
-    </table>
+    <div class="summary-section">
+        <div class="summary-title">Summary</div>
+        <div class="data-grid">
+            <div class="data-item">
+                <span class="label">Lab Room:</span>
+                <span>{{ $summary['lab_room_name'] }}</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Date Range:</span>
+                <span>{{ $summary['start_date'] }} to {{ $summary['end_date'] }}</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Maximum Temperature:</span>
+                <span>{{ $summary['max_temp'] }}°C</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Maximum Humidity:</span>
+                <span>{{ $summary['max_hum'] }}%</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Average Temperature:</span>
+                <span>{{ $summary['avg_temp'] }}°C</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Average Humidity:</span>
+                <span>{{ $summary['avg_hum'] }}%</span>
+            </div>
+        </div>
+    </div>
 
-    <h2>Problem Description</h2>
-    <p>{{ $summary['problem_desc'] }}</p>
+    {{-- <div class="graph-section">
+        <div class="graph-title">Temperature and Humidity Graph</div>
+        @if($summary['chart_image'])
+            <img src="data:image/png;base64,{{ $summary['chart_image'] }}" 
+                 class="graph-image" 
+                 alt="Temperature and Humidity Graph">
+        @endif
+    </div> --}}
+
+    <div class="problems-section">
+        <div class="section-title">Problems</div>
+        <p>{{ $summary['problem_desc'] ?: 'No issues reported.' }}</p>
+    </div>
 </body>
 </html>

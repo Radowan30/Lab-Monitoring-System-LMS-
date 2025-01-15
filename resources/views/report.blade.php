@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Report</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -308,119 +309,160 @@
         });
 
         // Function to update report preview
-    async function updatePreview() {
-        const labRoom = document.getElementById("lab-room").value || null;
-        const startDate = document.getElementById("startDate").value || null;
-        const endDate = document.getElementById("endDate").value || null;
-        const problemDescription = document.getElementById("problemDescription").value || 'No description provided.';
+        async function updatePreview() {
+    const labRoom = document.getElementById("lab-room").value || null;
+    const startDate = document.getElementById("startDate").value || null;
+    const endDate = document.getElementById("endDate").value || null;
+    const problemDescription = document.getElementById("problemDescription").value || 'No description provided.';
+    
+    // Get the chart canvas image
+    const chartCanvas = document.getElementById('reportChart');
+    const chartImage = chartCanvas.toDataURL('image/png');
 
-        try {
-            const response = await fetch(`/generate-report?labRoom=${labRoom}&startDate=${startDate}&endDate=${endDate}&problemDescription=${problemDescription}`, {
-                method: 'GET', // Use GET method
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                }
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                console.log('Preview data:', result.data);
-
-                // Update the report preview dynamically
-                const previewContent = `
-                    <p><strong>Lab Room:</strong> ${labRoom}</p>
-                    <p><strong>Date Range:</strong> ${startDate} to ${endDate}</p>
-                    <p><strong>Max Temperature:</strong> ${result.data.max_temp} °C</p>
-                    <p><strong>Max Humidity:</strong> ${result.data.max_hum} %</p>
-                    <p><strong>Average Temperature:</strong> ${result.data.avg_temp} °C</p>
-                    <p><strong>Average Humidity:</strong> ${result.data.avg_hum} %</p>
-                    <p><strong>Problem Description:</strong> ${problemDescription}</p>
-                `;
-
-                document.getElementById('pdfPreviewContent').innerHTML = previewContent;
-            } else {
-                console.error('Error fetching preview data:', result.message);
+    try {
+        const response = await fetch(`/generate-report?labRoom=${labRoom}&startDate=${startDate}&endDate=${endDate}&problemDescription=${problemDescription}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             }
-        } catch (error) {
-            console.error('Error:', error);
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            console.log('Preview data:', result.data);
+
+            // Update the report preview dynamically
+            const previewContent = `
+                <div class="space-y-4">
+                    <div class="border-b pb-2">
+                        <h3 class="text-lg font-semibold mb-2">Report Details</h3>
+                        <p><strong>Lab Room:</strong> ${labRoom}</p>
+                        <p><strong>Date Range:</strong> ${startDate} to ${endDate}</p>
+                        <p><strong>Max Temperature:</strong> ${result.data.max_temp} °C</p>
+                        <p><strong>Max Humidity:</strong> ${result.data.max_hum} %</p>
+                        <p><strong>Average Temperature:</strong> ${result.data.avg_temp} °C</p>
+                        <p><strong>Average Humidity:</strong> ${result.data.avg_hum} %</p>
+                        <p><strong>Problem Description:</strong> ${problemDescription}</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-lg font-semibold mb-2">Graph Preview</h3>
+                        <img src="${chartImage}" alt="Temperature and Humidity Graph" class="w-full max-w-2xl mx-auto"/>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('pdfPreviewContent').innerHTML = previewContent;
+        } else {
+            console.error('Error fetching preview data:', result.message);
         }
+    } catch (error) {
+        console.error('Error:', error);
     }
+}
 
 
 
         // Generate Report
-        function showPdfPreviewModal(event) {
-            if (event) {
-                event.preventDefault();
-            }
+        // First, let's modify the showPdfPreviewModal function
+async function showPdfPreviewModal(event) {
+    if (event) {
+        event.preventDefault();
+    }
+
+    // Get form values
     const labRoom = document.getElementById('lab-room').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
     const problemPresent = document.getElementById('problemCheckbox').checked;
-    const problemDescription = problemPresent ? 
-        document.getElementById('problemDescription').value : 
-        'No description provided.';
+    const problemDescription = document.getElementById('problemDescription').value.trim();
 
-    const chartCanvas = document.getElementById('reportChart');
-    const chartImage = chartCanvas.toDataURL('image/png');
+    const finalProblemDesc = problemCheckbox?.checked && problemDescription 
+        ? problemDescription 
+        : 'No issues reported.';
 
     if (!labRoom || !startDate || !endDate) {
         alert("Please select a lab room and specify the date range.");
         return;
     }
 
+    // Show loading state in the modal
+    document.getElementById('pdfPreviewModal').classList.remove('hidden');
+    document.getElementById('pdfPreviewContent').innerHTML = '<div class="text-center">Loading preview...</div>';
 
-    // Construct the URL with parameters
-    const url = new URL('/generate-report', window.location.origin);
-    url.searchParams.append('lab_room_name', labRoom);
-    url.searchParams.append('start_date', startDate);
-    url.searchParams.append('end_date', endDate);
-    url.searchParams.append('problemDescription', problemDescription);
-    url.searchParams.append('chartImage', chartImage);
+    // Get the chart canvas image
+    const chartCanvas = document.getElementById('reportChart');
+    const chartImage = chartCanvas.toDataURL('image/png');
 
-    console.log('Fetching data from URL:', url.toString());
 
-    fetch(url, { method: 'GET' })
-        .then(response => response.blob())
-        .then(blob => {
-            const fileURL = URL.createObjectURL(blob);
-            const pdfPreviewContainer = document.getElementById('pdfPreviewContent');
-            const downloadBtn = document.getElementById('downloadPDFButton');
-
-            // Display the modal
-            document.getElementById('pdfPreviewModal').classList.remove('hidden');
-
-            // Display report details
-            document.getElementById('labRoomPreview').innerText = `Lab Room: ${labRoom}`;
-            document.getElementById('dateRangePreview').innerText = `Date Range: ${startDate} - ${endDate}`;
-            document.getElementById('problemDescriptionPreview').innerText = `Problem Description: ${document.getElementById('problemDescription').value}`;
-
-            // Use PDF.js to display the first page of the PDF in the modal
-            pdfjsLib.getDocument(fileURL).promise.then(pdfDoc_ => {
-                const pdfDoc = pdfDoc_;
-                pdfDoc.getPage(1).then(function (page) {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    const viewport = page.getViewport({ scale: 1 });
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    page.render({ canvasContext: context, viewport: viewport }).promise.then(function () {
-                        pdfPreviewContainer.innerHTML = '';
-                        pdfPreviewContainer.appendChild(canvas);
-                    });
-                });
-            });
-
-            // Add event listener to the download button
-            downloadBtn.onclick = function () {
-                const link = document.createElement('a');
-                link.href = fileURL;
-                link.download = 'lab_report.pdf';
-                link.click();
-            };
+    try {
+        // Fetch report data
+        const params = new URLSearchParams({
+            lab_room_name: labRoom,
+            start_date: startDate,
+            end_date: endDate,
+            problemDescription: problemPresent ? problemDescription : 'No issues reported'
         });
+
+        const response = await fetch(`/generate-report?${params.toString()}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update the preview content
+            const previewContent = `
+                <div class="space-y-4 p-4">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-semibold mb-3">Report Summary</h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            <p><strong>Lab Room:</strong> ${labRoom}</p>
+                            <p><strong>Date Range:</strong> ${formatDate(startDate)} to ${formatDate(endDate)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-lg font-semibold mb-3">Temperature & Humidity Graph</h3>
+                        <img src="${chartImage}" alt="Temperature and Humidity Graph" 
+                             class="w-full max-w-2xl mx-auto border rounded-lg shadow-sm"/>
+
+                    <div class="mt-4 text-center font-mono">
+                            Average temp: ${result.data.avg_temp}°C &nbsp;&nbsp;&nbsp; 
+                            Max temp: ${result.data.max_temp}°C &nbsp;&nbsp;&nbsp; 
+                            Min temp: ${result.data.min_temp ?? '7'}°C
+                        </div>
+                        
+                        <div class="mt-4">
+                        <h3 class="text-lg font-semibold mb-3">Problems</h3>
+                        <p>${finalProblemDesc}</p>
+                    </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('pdfPreviewContent').innerHTML = previewContent;
+        } else {
+            document.getElementById('pdfPreviewContent').innerHTML = 
+                '<div class="text-red-500 p-4">Error loading preview data. Please try again.</div>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('pdfPreviewContent').innerHTML = 
+            '<div class="text-red-500 p-4">Error generating preview. Please try again.</div>';
+    }
 }
+
+// Helper function to format dates
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString();
+}
+
+// Update modal styling
+document.getElementById('pdfPreviewModal').classList.add('overflow-auto', 'max-h-[90vh]');
 
 function closePdfPreviewModal() {
     document.getElementById('pdfPreviewModal').classList.add('hidden');

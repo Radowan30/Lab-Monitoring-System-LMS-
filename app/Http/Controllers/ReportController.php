@@ -158,15 +158,16 @@ class ReportController extends Controller
         $problemDescription = $request->input('problemDescription');
         $chartImage = $request->input('chartImage');
 
+        // Clean up the base64 image data
         if ($chartImage) {
+            // Remove data URL prefix if present
             $chartImage = str_replace('data:image/png;base64,', '', $chartImage);
+            $chartImage = str_replace(' ', '+', $chartImage);
         }
 
         if (empty($problemDescription)) {
-            $problemDescription = 'No description provided.';
+            $problemDescription = 'No issues reported.';
         }
-
-        \Log::info('Generate Report Parameters:', compact('labRoomName', 'startDate', 'endDate'));
 
         // Query the database to fetch data
         $data = DB::table('sensors_data')
@@ -181,17 +182,6 @@ class ReportController extends Controller
             )
             ->first();
 
-        \Log::info('Query Result:', (array) $data);
-
-        // Check if the query returned data
-        if (!$data || (is_null($data->max_temp) && is_null($data->max_hum))) {
-            \Log::warning('No data found for the selected parameters.');
-            return response()->json([
-                'success' => false,
-                'message' => 'No data found for the selected parameters.'
-            ]);
-        }
-
         // Prepare the summary data
         $summary = [
             'lab_room_name' => $labRoomName,
@@ -205,22 +195,18 @@ class ReportController extends Controller
             'chart_image' => $chartImage
         ];
 
-        \Log::info('Summary Data:', $summary);
-
-        // Check if the request is for PDF or JSON
+        // Check if the request is for preview or PDF
         if ($request->expectsJson()) {
-            // Return JSON for preview
             return response()->json([
                 'success' => true,
                 'data' => $summary,
             ]);
         } else {
             // Generate PDF
-            $pdf = Pdf::loadView('report_pdf', compact('summary'));
-            return $pdf->download('lab_report.pdf')->header('Content-Type', 'application/pdf');
+            $pdf = PDF::loadView('report_pdf', compact('summary'));
+            return $pdf->download('lab_report.pdf');
         }
     }
-
 
     public function getSummaryData(Request $request)
     {
