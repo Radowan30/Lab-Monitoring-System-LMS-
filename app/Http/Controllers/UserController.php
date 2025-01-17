@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash; // Import this for password hashing
+// use Illuminate\Support\Facades\Hash; // Import this for password hashing
 
 class UserController extends Controller
 {
@@ -12,16 +12,13 @@ class UserController extends Controller
     public function loadAllUsers()
     {
         $all_users = User::all();
-        \Log::info('Users count: ' . $all_users->count());
-    \Log::info('Users data: ', $all_users->toArray());
-    
-        return view('admin', compact('all_users'));
+        return view('users', compact('all_users'));
     }
 
     // Load form to add a new user
     public function loadAddUserForm()
     {
-        return view('admin-components.add-user');
+        return view('add-user');
     }
 
     // Add a new user
@@ -30,25 +27,18 @@ class UserController extends Controller
         $request->validate([
             'full_name' => 'required|string',
             'email' => 'required|email|unique:users',
-            'is_admin' => 'required|in:0,1',
+            'is_admin' => 'required|in:user,admin',
             'password' => 'required|confirmed|min:4|max:8',
         ]);
 
         try {
-            $isAdmin = (int) $request->is_admin;
+            $new_user = new User;
+            $new_user->name = $request->full_name;
+            $new_user->email = $request->email;
+            $new_user->is_admin = $request->is_admin; // Save user type
+            $new_user->password = $request->password; // Hash the password
 
-            // Validate it's 0 or 1
-            if (!in_array($isAdmin, [0, 1])) {
-                return back()->with('error', 'Invalid user type selected');
-            }
-
-            // Create user with converted value
-            User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'is_admin' => $isAdmin
-            ]);
+            $new_user->save();
 
             return redirect('/users')->with('success', 'User Added Successfully');
         } catch (\Exception $e) {
@@ -91,7 +81,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id); // Use findOrFail to handle invalid IDs
 
-        return view('admin-components.edit-user', compact('user'));
+        return view('edit-user', compact('user'));
     }
 
     // Delete a user

@@ -4,22 +4,53 @@ use App\Http\Controllers\LabRoomController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LabAnalyticsController;
+use Illuminate\Support\Facades\Auth;
+
+
+//Route for logout
+// Route::post('/logout', function () {
+//     Auth::logout();
+//     return redirect()->route('login');
+// })->name('logout');
+
+
+// Route::get('/', function () {
+//     return redirect()->route('login');
+// });
+
+//To direct the user to the login page if they visit '/'
+Route::get('/', function () {
+    return view('auth/login');
+});
+
+//Routes for the Report view
+Route::get('report', [ReportController::class, 'showReport'])->name('report.page');
+Route::get('/sensor-data-report', [ReportController::class, 'getSensorData']);
+Route::get('/download-csv', [ReportController::class, 'downloadCsv'])->name('download.csv');
+Route::get('/generate-report', [ReportController::class, 'generateReport'])->name('generate.report');
+Route::get('/download-report-pdf', [ReportController::class, 'downloadReportPDF']);
+Route::get('summary-data', [ReportController::class, 'getSummaryData']);
+Route::get('/get-sensor-id', [ReportController::class, 'getSensorId']);
+
 
 
 //Routes for the admin view
-Route::post('/add/user', [UserController::class, 'AddUser'])->name('AddUser');
-Route::get('/adminUsers', [UserController::class, 'loadAllUsers'])->name('admin.users');
-// Route::get('/add/user',[UserController::class,'loadAddUserForm']);
+Route::get('/users', [UserController::class, 'loadAllUsers']);
+Route::get('/add/user', [UserController::class, 'loadAddUserForm']);
 
-// Route::get('/edit/{id}',[UserController::class,'loadEditForm']);
+Route::post('/add/user', [UserController::class, 'AddUser'])->name('AddUser');
+
+Route::get('/edit/{id}', [UserController::class, 'loadEditForm']);
 Route::get('/delete/{id}', [UserController::class, 'deleteUser']);
 
 Route::post('/edit/user', [UserController::class, 'EditUser'])->name('EditUser');
 
 
+//route for activating the checkSensor1Status method of the LabRoomController
 Route::get('/sensor1-status', [LabRoomController::class, 'checkSensor1Status']);
 
 //Routes for everthing related to notifications in the dashboard
@@ -36,9 +67,9 @@ Route::get('/dashboard/sensor1', [LabRoomController::class, 'getSensor1Info'])->
 //Routes related to customer analytics subsystem
 Route::resource('customers', CustomerController::class);
 
-Route::get('/cust-form', function () {
+Route::get('/customer-form', function () {
     return view('create');
-});
+})->name('customer.form');
 
 
 Route::controller(CustomerController::class)->group(function () {
@@ -109,9 +140,9 @@ Route::middleware('auth')->group(function () {
         return view('user-selection'); // This points to your user-selection.blade.php file
     })->name('admin.choose-role');
 
-    // Dummy Admin Page (Replace with the actual subsystem later)
+    // Direct to the admin page
     Route::get('/admin', function () {
-        return view('Admin');
+        return view('admin');
     })->name('admin.view');
 });
 

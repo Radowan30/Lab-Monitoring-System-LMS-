@@ -198,7 +198,7 @@ class LabRoomController extends Controller
             // If it's the first violation, record the timestamp
             if ($firstViolationTime === null) {
                 $firstViolationTime = Carbon::now();
-                Cache::put($timeKey, $firstViolationTime, now()->addMinutes(30));
+                Cache::put($timeKey, $firstViolationTime, now()->addMinutes(35));
             }
         }
 
@@ -207,13 +207,13 @@ class LabRoomController extends Controller
         $totalCount++;
 
         // Update counters in the cache
-        Cache::put($violationKey, $violationCount, now()->addMinutes(30));
-        Cache::put($totalKey, $totalCount, now()->addMinutes(30));
+        Cache::put($violationKey, $violationCount, now()->addMinutes(35));
+        Cache::put($totalKey, $totalCount, now()->addMinutes(35));
 
         Log::info("Total count: $totalCount, Violation count: $violationCount, Violation time: $firstViolationTime, Current time: " . Carbon::now()->toDateTimeString());
 
         // Check if 30 minutes have passed since the first violation
-        if ($firstViolationTime !== null && $firstViolationTime->diffInMinutes(Carbon::now()) >= 1) {
+        if ($firstViolationTime !== null && $firstViolationTime->diffInMinutes(Carbon::now()) >= 30) {
 
             Log::info("One minute from the first violation. Violation count: $violationCount, Total count: $totalCount");
 

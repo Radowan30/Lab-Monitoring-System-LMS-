@@ -816,8 +816,8 @@
                     <button type="submit" style="display:none;">Filter</button>
                     <div class="filter-actions">
                         <button type="button" id="reset-filter-btn" class="reset-filter-btn">Reset Filters</button>
-                        <button type="button" id="view-form-btn" class="reset-filter-btn"
-                            onclick="window.location.href='/cust-form'">View Form</button>
+                        <a href="{{ route('customer.form') }}" target="_blank" id="view-form-btn"
+                            class="button reset-filter-btn">View Form</a>
                     </div>
                 </form>
 

@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\SensorsData;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\SensorsData;
 
 class SensorsDataSeeder extends Seeder
 {
@@ -13,6 +12,7 @@ class SensorsDataSeeder extends Seeder
      */
     public function run(): void
     {
+        // Generate 50 random records
         SensorsData::factory()->count(50)->create();
     }
 }

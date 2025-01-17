@@ -126,17 +126,19 @@
 
         <div class="w-full md:w-1/2 mx-auto space-y-4 px-10 pb-20">
             <!-- Generate Report -->
-            <button
+            <!-- Generate Report -->
+            <a href="{{ route('report.page') }}"
                 class="transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-102 w-full bg-[#3B82F6] text-white py-3 rounded-lg flex items-center justify-center space-x-2 drop-shadow-lg">
                 <span>Generate Report</span>
                 <i data-feather="file-text"></i>
-            </button>
+            </a>
+
             <!-- Customer Analytics -->
-            <button
+            <a href="{{ route('lab.analytics') }}"
                 class="transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-102 w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg flex items-center justify-center space-x-2 drop-shadow-lg">
                 <span>Customer Analytics</span>
                 <i data-feather="users"></i>
-            </button>
+            </a>
         </div>
 
         <!-- Notifications list modal -->
