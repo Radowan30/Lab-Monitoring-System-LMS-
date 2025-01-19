@@ -28,8 +28,8 @@ Route::get('/', function () {
 });
 
 //Routes for the Report view
-Route::get('report', [ReportController::class, 'showReport'])->name('report.page');
-Route::get('/sensor-data-report', [ReportController::class, 'getSensorData']);
+Route::get('report', [ReportController::class, 'showReport'])->name('report.page'); //the name is not there in the original. ->name('report.page')
+Route::get('/sensor-data-report', [ReportController::class, 'getSensorData']); //the original route is /sensor-data
 Route::get('/download-csv', [ReportController::class, 'downloadCsv'])->name('download.csv');
 Route::get('/generate-report', [ReportController::class, 'generateReport'])->name('generate.report');
 Route::get('/download-report-pdf', [ReportController::class, 'downloadReportPDF']);
