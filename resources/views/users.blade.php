@@ -9,15 +9,14 @@
     <title>Admin Panel</title>
 </head>
 <body class="bg-gray-100">
-    <header class="bg-gradient-to-r from-cyan-400 to-indigo-500 p-4 text-white flex items-center justify-between">
+    <header class="bg-gradient-to-r from-cyan-400 to-indigo-500 p-4 text-white flex items-center justify-between relative">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="text-white text-2xl no-underline">
                 <i data-feather="log-out"></i>
             </button>
         </form>
-        <h1>Admin Panel</h1>
-        <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-indigo-500 font-bold">A</div>
+        <h1 class="absolute left-1/2 transform -translate-x-1/2">Admin Panel</h1>
     </header>
 
     @if(session('success'))
