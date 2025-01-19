@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Hash; // Import this for password hashing
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -35,7 +36,7 @@ class UserController extends Controller
             $new_user = new User;
             $new_user->name = $request->full_name;
             $new_user->email = $request->email;
-            $new_user->is_admin = $request->is_admin; // Save user type
+            $new_user->is_admin = $request->is_admin === 'admin' ? 1 : 0; // Save user type
             $new_user->password = $request->password; // Hash the password
 
             $new_user->save();
@@ -53,7 +54,7 @@ class UserController extends Controller
             'user_id' => 'required|exists:users,id',
             'full_name' => 'required|string',
             'email' => 'required|email',
-            // 'type' => 'required|in:user,admin',
+            'is_admin' => 'required|in:0,1',
             'password' => 'nullable|confirmed|min:4|max:8',
         ]);
 
@@ -61,11 +62,11 @@ class UserController extends Controller
             $update_data = [
                 'name' => $request->full_name,
                 'email' => $request->email,
-                'is_admin' => $request->is_admin, // Update user type
+                'is_admin' => $request->is_admin === '1' ? 1 : 0, // Update user type
             ];
 
             if ($request->filled('password')) {
-                $update_data['password'] = $request->password;
+                $update_data['password'] = Hash::make($request->password); // Hash the password
             }
 
             User::where('id', $request->user_id)->update($update_data);

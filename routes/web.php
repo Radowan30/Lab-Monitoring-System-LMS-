@@ -40,9 +40,9 @@ Route::get('/get-sensor-id', [ReportController::class, 'getSensorId']);
 
 //Routes for the admin view
 Route::get('/users', [UserController::class, 'loadAllUsers']);
-Route::get('/add/user', [UserController::class, 'loadAddUserForm']);
-
 Route::post('/add/user', [UserController::class, 'AddUser'])->name('AddUser');
+
+Route::get('/add/user', [UserController::class, 'AddUser']);
 
 Route::get('/edit/{id}', [UserController::class, 'loadEditForm']);
 Route::get('/delete/{id}', [UserController::class, 'deleteUser']);
@@ -141,9 +141,7 @@ Route::middleware('auth')->group(function () {
     })->name('admin.choose-role');
 
     // Direct to the admin page
-    Route::get('/admin', function () {
-        return view('admin');
-    })->name('admin.view');
+    Route::get('/admin', [UserController::class, 'loadAllUsers'])->name('admin.view');
 });
 
 require __DIR__ . '/auth.php';

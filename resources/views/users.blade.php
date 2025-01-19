@@ -4,14 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <title>Admin Panel</title>
 </head>
 <body class="bg-gray-100">
     <header class="bg-gradient-to-r from-cyan-400 to-indigo-500 p-4 text-white flex items-center justify-between">
-        <a href="#" class="text-white text-2xl no-underline">←</a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="text-white text-2xl no-underline">
+                <i data-feather="log-out"></i>
+            </button>
+        </form>
         <h1>Admin Panel</h1>
         <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-indigo-500 font-bold">A</div>
     </header>
+
+    @if(session('success'))
+<div 
+    x-data="{ show: true }" 
+    x-init="setTimeout(() => show = false, 2000)" 
+    x-show="show" 
+    x-transition.opacity
+    class="text-green-600 bg-green-100 p-2 rounded"
+>
+    {{ session('success') }}
+</div>
+@endif
 
     <div class="max-w-7xl mx-auto my-8 px-4">
         <h2 class="text-center text-gray-600 text-2xl mb-8">Hi Admin, Welcome back!</h2>
@@ -33,7 +52,7 @@
                     @foreach ($all_users as $item)
                         <div class="p-4 grid grid-cols-6 items-center border-b border-gray-200 user-row" data-user-name="{{strtolower($item->name)}}" data-user-type="{{strtolower($item->is_admin)}}">
                             <div class="col-span-2">{{$item->name}}</div>
-                            <div>{{$item->is_admin}}</div>
+                            <div>{{ $item->is_admin == 1 ? 'Admin' : 'User' }}</div>
                             <div class="col-span-3 flex gap-2">
                                 <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm" 
                                     onclick="editUser('{{$item->id}}', '{{$item->name}}', '{{$item->email}}', '{{$item->is_admin}}'); toggleModal('editUserModal')">
@@ -117,107 +136,111 @@
     </div>
 
     <!-- Edit User Modal -->
-    <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-        <div class="min-h-screen px-4 text-center">
-            <div class="fixed inset-0 transition-opacity" onclick="toggleModal('editUserModal')"></div>
-            <div class="inline-block align-middle max-w-md w-full bg-white rounded-lg text-left shadow-xl transform transition-all my-8">
-                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-                    <h5 class="text-xl font-medium">Edit User</h5>
-                    <button type="button" class="text-gray-400 hover:text-gray-500 text-2xl" onclick="toggleModal('editUserModal')">×</button>
-                </div>
-                <div class="p-4">
-                    <form action="{{ route('EditUser')}}" method="post">
-                        @csrf
-                        <input type="hidden" name="user_id" id="edit_user_id">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                            <input type="text" name="full_name" id="edit_full_name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter Full Name">
-                            @error('full_name')
-                                <span class="text-red-500 text-sm">{{$message}}</span>
-                            @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">User Type</label>
-                            <select name="is_admin" id="edit_user_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                            @error('is_admin')
-                                <span class="text-red-500 text-sm">{{$message}}</span>
-                            @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" name="email" id="edit_email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter Email">
-                            @error('email')
-                                <span class="text-red-500 text-sm">{{$message}}</span>
-                            @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">New Password (optional)</label>
-                            <input type="password" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter New Password">
-                            @error('password')
-                                <span class="text-red-500 text-sm">{{$message}}</span>
-                            @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                            <input type="password" name="password_confirmation" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Confirm New Password">
-                            @error('password_confirmation')
-                                <span class="text-red-500 text-sm">{{$message}}</span>
-                            @enderror
-                        </div>
-                        <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Save Changes</button>
-                    </form>
-                </div>
+<div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="min-h-screen px-4 text-center">
+        <div class="fixed inset-0 transition-opacity" onclick="toggleModal('editUserModal')"></div>
+        <div class="inline-block align-middle max-w-md w-full bg-white rounded-lg text-left shadow-xl transform transition-all my-8">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h5 class="text-xl font-medium">Edit User</h5>
+                <button type="button" class="text-gray-400 hover:text-gray-500 text-2xl" onclick="toggleModal('editUserModal')">×</button>
+            </div>
+            <div class="p-4">
+                <form action="{{ route('EditUser')}}" method="post">
+                    @csrf
+                    <input type="hidden" name="user_id" id="edit_user_id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" name="full_name" id="edit_full_name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter Full Name">
+                        @error('full_name')
+                            <span class="text-red-500 text-sm">{{$message}}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                        <select name="is_admin" id="edit_user_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="0">User</option>
+                            <option value="1">Admin</option>
+                        </select>
+                        @error('is_admin')
+                            <span class="text-red-500 text-sm">{{$message}}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" name="email" id="edit_email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter Email">
+                        @error('email')
+                            <span class="text-red-500 text-sm">{{$message}}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">New Password (optional)</label>
+                        <input type="password" name="password" id="edit_password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter New Password">
+                        @error('password')
+                            <span class="text-red-500 text-sm">{{$message}}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input type="password" name="password_confirmation" id="edit_password_confirmation" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Confirm New Password">
+                        @error('password_confirmation')
+                            <span class="text-red-500 text-sm">{{$message}}</span>
+                        @enderror
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Save Changes</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
     <script>
+        feather.replace();
+
         function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
+        const modal = document.getElementById(modalId);
+        if (modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+        } else {
+            modal.classList.add('hidden');
+        }
+    }
+
+    function editUser(id, name, email, isAdmin) {
+        document.getElementById('edit_user_id').value = id;
+        document.getElementById('edit_full_name').value = name;
+        document.getElementById('edit_email').value = email;
+        document.getElementById('edit_user_type').value = isAdmin ? '1' : '0';
+        document.getElementById('edit_password').value = '';
+        document.getElementById('edit_password_confirmation').value = '';
+    }
+
+    function searchUsers() {
+        const searchInput = document.getElementById('searchInput');
+        const searchTerm = searchInput.value.toLowerCase();
+        const userRows = document.querySelectorAll('.user-row:not(.no-results)');
+        let hasVisibleRows = false;
+
+        userRows.forEach(row => {
+            const userName = row.getAttribute('data-user-name');
+            const userType = row.getAttribute('data-user-type');
+            
+            if (userName.includes(searchTerm) || userType.includes(searchTerm)) {
+                row.classList.remove('hidden');
+                hasVisibleRows = true;
             } else {
-                modal.classList.add('hidden');
+                row.classList.add('hidden');
+            }
+        });
+
+        const noResults = document.querySelector('.no-results');
+        if (noResults) {
+            if (hasVisibleRows) {
+                noResults.classList.add('hidden');
+            } else {
+                noResults.classList.remove('hidden');
             }
         }
-
-        function editUser(id, name, email, userType) {
-            document.getElementById('edit_user_id').value = id;
-            document.getElementById('edit_full_name').value = name;
-            document.getElementById('edit_email').value = email;
-            document.getElementById('edit_user_type').value = userType;
-        }
-
-        function searchUsers() {
-            const searchInput = document.getElementById('searchInput');
-            const searchTerm = searchInput.value.toLowerCase();
-            const userRows = document.querySelectorAll('.user-row:not(.no-results)');
-            let hasVisibleRows = false;
-
-            userRows.forEach(row => {
-                const userName = row.getAttribute('data-user-name');
-                const userType = row.getAttribute('data-user-type');
-                
-                if (userName.includes(searchTerm) || userType.includes(searchTerm)) {
-                    row.classList.remove('hidden');
-                    hasVisibleRows = true;
-                } else {
-                    row.classList.add('hidden');
-                }
-            });
-
-            const noResults = document.querySelector('.no-results');
-            if (noResults) {
-                if (hasVisibleRows) {
-                    noResults.classList.add('hidden');
-                } else {
-                    noResults.classList.remove('hidden');
-                }
-            }
-        }
+    }
     </script>
 </body>
 </html>
