@@ -157,56 +157,125 @@ class ReportController extends Controller
         $endDate = Carbon::parse($request->input('end_date'))->toDateString();
         $problemDescription = $request->input('problemDescription');
         $chartImage = $request->input('chartImage');
+        $tempFileName = '';
+        $tempFilePath = '';
 
-        // Clean up the base64 image data
+        // Clean up and process the base64 image data
         if ($chartImage) {
             // Remove data URL prefix if present
-            $chartImage = str_replace('data:image/png;base64,', '', $chartImage);
+            $chartImage = preg_replace('/^data:image\/\w+;base64,/', '', $chartImage);
             $chartImage = str_replace(' ', '+', $chartImage);
+            // Convert to actual image data
+            $imageData = base64_decode($chartImage);
+
+            // Create a unique filename for the image
+            $tempFileName = 'chart_' . time() . '.png';
+            $tempFilePath = public_path('temp/' . $tempFileName);
+
+            // Ensure the temp directory exists
+            if (!file_exists(public_path('temp'))) {
+                mkdir(public_path('temp'), 0777, true);
+            }
+
+            // Save the image
+            file_put_contents($tempFilePath, $imageData);
+
+            // Update chart_image to use the public URL
+            $chartImage = 'public/temp/' . $tempFileName;
         }
 
-        if (empty($problemDescription)) {
-            $problemDescription = 'No issues reported.';
-        }
-
-        // Query the database to fetch data
+        // Query database and prepare summary data...
         $data = DB::table('sensors_data')
             ->join('sensors', 'sensors.sensor_id', '=', 'sensors_data.sensor_id')
             ->where('sensors.lab_room_name', $labRoomName)
             ->whereBetween('sensors_data.recorded_at', [$startDate, $endDate])
             ->select(
-                DB::raw('MAX(sensors_data.temperature) as max_temp'),
-                DB::raw('MAX(sensors_data.humidity) as max_hum'),
-                DB::raw('AVG(sensors_data.temperature) as avg_temp'),
-                DB::raw('AVG(sensors_data.humidity) as avg_hum')
-            )
-            ->first();
+                DB::raw('MAX(temperature) as max_temp'),
+                DB::raw('MIN(temperature) as min_temp'),
+                DB::raw('MAX(humidity) as max_hum'),
+                DB::raw('AVG(temperature) as avg_temp'),
+                DB::raw('AVG(humidity) as avg_hum')
+            )->first();
 
-        // Prepare the summary data
         $summary = [
             'lab_room_name' => $labRoomName,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'max_temp' => $data->max_temp !== null ? round($data->max_temp, 2) : 0,
+            'min_temp' => $data->min_temp !== null ? round($data->min_temp, 2) : 0,
             'max_hum' => $data->max_hum !== null ? round($data->max_hum, 2) : 0,
             'avg_temp' => $data->avg_temp !== null ? round($data->avg_temp, 2) : 0,
             'avg_hum' => $data->avg_hum !== null ? round($data->avg_hum, 2) : 0,
-            'problem_desc' => $problemDescription,
+            'problem_desc' => $problemDescription ?: 'No issues reported.',
             'chart_image' => $chartImage
         ];
 
-        // Check if the request is for preview or PDF
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'data' => $summary,
             ]);
         } else {
-            // Generate PDF
-            $pdf = Pdf::loadView('report_pdf', compact('summary'));
+            $pdf = PDF::loadView('report_pdf', compact('summary'));
+
+            // Clean up temp file after PDF is generated
+            if (file_exists($tempFilePath)) {
+                unlink($tempFilePath);
+            }
+
             return $pdf->download('lab_report.pdf');
         }
     }
+
+
+    // public function downloadReportPDF(Request $request)
+    // {
+    //     $labRoomName = $request->input('lab_room_name');
+    //     $startDate = Carbon::parse($request->input('start_date'))->toDateString();
+    //     $endDate = Carbon::parse($request->input('end_date'))->toDateString();
+    //     $problemDescription = $request->input('problemDescription', 'No issues reported.');
+    //     $chartImage = $request->input('chartImage');
+
+    //     // Clean up the base64 image data
+    //     if ($chartImage) {
+    //         $chartImage = str_replace('data:image/png;base64,', '', $chartImage);
+    //         $chartImage = str_replace(' ', '+', $chartImage);
+    //     }
+
+    //     // Query the database to fetch data
+    //     $data = DB::table('sensors_data')
+    //         ->join('sensors', 'sensors.sensor_id', '=', 'sensors_data.sensor_id')
+    //         ->where('sensors.lab_room_name', $labRoomName)
+    //         ->whereBetween('sensors_data.recorded_at', [$startDate, $endDate])
+    //         ->select(
+    //             DB::raw('MAX(sensors_data.temperature) as max_temp'),
+    //             DB::raw('MIN(sensors_data.temperature) as min_temp'),
+    //             DB::raw('MAX(sensors_data.humidity) as max_hum'),
+    //             DB::raw('AVG(sensors_data.temperature) as avg_temp'),
+    //             DB::raw('AVG(sensors_data.humidity) as avg_hum')
+    //         )
+    //         ->first();
+
+    //     // Prepare the summary data
+    //     $summary = [
+    //         'lab_room_name' => $labRoomName,
+    //         'start_date' => $startDate,
+    //         'end_date' => $endDate,
+    //         'max_temp' => $data->max_temp !== null ? round($data->max_temp, 2) : 0,
+    //         'min_temp' => $data->min_temp !== null ? round($data->min_temp, 2) : 0,
+    //         'max_hum' => $data->max_hum !== null ? round($data->max_hum, 2) : 0,
+    //         'avg_temp' => $data->avg_temp !== null ? round($data->avg_temp, 2) : 0,
+    //         'avg_hum' => $data->avg_hum !== null ? round($data->avg_hum, 2) : 0,
+    //         'problem_desc' => $problemDescription,
+    //         'chart_image' => $chartImage
+    //     ];
+
+    //     // Generate the PDF
+    //     $pdf = Pdf::loadView('report_pdf', compact('summary'));
+    //     return $pdf->download('lab_report.pdf');
+    // }
+
+
 
     public function getSummaryData(Request $request)
     {

@@ -31,7 +31,8 @@ Route::get('/', function () {
 Route::get('report', [ReportController::class, 'showReport'])->name('report.page'); //the name is not there in the original. ->name('report.page')
 Route::get('/sensor-data-report', [ReportController::class, 'getSensorData']); //the original route is /sensor-data
 Route::get('/download-csv', [ReportController::class, 'downloadCsv'])->name('download.csv');
-Route::get('/generate-report', [ReportController::class, 'generateReport'])->name('generate.report');
+Route::match(['get', 'post'], '/generate-report', [ReportController::class, 'generateReport'])->name('generate.report');
+// Route::post('/download-report-pdf', [ReportController::class, 'downloadReportPDF'])->name('download.report.pdf');
 Route::get('/download-report-pdf', [ReportController::class, 'downloadReportPDF']);
 Route::get('summary-data', [ReportController::class, 'getSummaryData']);
 Route::get('/get-sensor-id', [ReportController::class, 'getSensorId']);
