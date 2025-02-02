@@ -3,18 +3,6 @@
 @tailwind utilities;
 
 /* Styles for the dasboard page */
-.temp-gradient-green {
-    background: linear-gradient(to right, #86efac, #4ade80);
-}
-.temp-gradient-purple {
-    background: linear-gradient(to right, #e879f9, #d946ef);
-}
-.temp-gradient-blue {
-    background: linear-gradient(to right, #93c5fd, #60a5fa);
-}
-.temp-gradient-chiller {
-    background: linear-gradient(to right, #7dd3fc, #38bdf8);
-}
 
 @media (max-width: 1024px) {
     .sidebar-hidden {
@@ -156,3 +144,6 @@
         width: 240px; /* Keep consistent width for FETEM button */
     }
 }
+
+
+

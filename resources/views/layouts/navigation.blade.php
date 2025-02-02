@@ -112,7 +112,7 @@
         <!-- Navigation Menu -->
         <nav class="space-y-4">
             <a href="{{ route('dashboard') }}"
-                class="flex items-center space-x-3 px-4 py-2 bg-[#EEF2FF] rounded-lg text-[#3B82F6]">
+                class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('dashboard') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }} rounded-lg">
                 <i data-feather="home"></i>
                 <span>Dashboard</span>
             </a>
@@ -120,31 +120,38 @@
                 <button class="dropdown-button" onclick="toggleDropdown()">
                     <div class="flex items-center space-x-3">
                         <i data-feather="layout"></i>
-                        <span>Lab Rooms</span>
+                        <span class="{{ request()->routeIs('lab_rooms.*') ? 'text-[#3B82F6]' : 'text-gray-600' }}">Lab
+                            Rooms</span>
                     </div>
                     <i data-feather="chevron-down" class="dropdown-icon"></i>
                 </button>
                 <div class="dropdown-content" id="labRoomsDropdown">
-                    <a href="{{ route('lab_rooms.prep-lab') }}" class="dropdown-item">
+                    <a href="{{ route('lab_rooms.prep-lab') }}"
+                        class="dropdown-item {{ request()->routeIs('lab_rooms.prep-lab') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }}">
                         <span>Preparation Lab</span>
                     </a>
-                    <a href="{{ route('lab_rooms.fetem-room') }}" class="dropdown-item">
+                    <a href="{{ route('lab_rooms.fetem-room') }}"
+                        class="dropdown-item {{ request()->routeIs('lab_rooms.fetem-room') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }}">
                         <span>FETEM Room</span>
                     </a>
-                    <a href="{{ route('lab_rooms.fesem-room') }}" class="dropdown-item">
+                    <a href="{{ route('lab_rooms.fesem-room') }}"
+                        class="dropdown-item {{ request()->routeIs('lab_rooms.fesem-room') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }}">
                         <span>FESEM Room</span>
                     </a>
                 </div>
             </div>
-            <a href="#" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
+            <a href="{{ route('report.page') }}"
+                class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('report.page') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }} rounded-lg">
                 <i data-feather="file-text"></i>
                 <span>Reports</span>
             </a>
-            <a href="#" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
+            <a href="{{ route('lab.analytics') }}"
+                class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('lab.analytics') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }} rounded-lg">
                 <i data-feather="users"></i>
                 <span>Customer Analytics</span>
             </a>
-            <a href="#" class="flex items-center space-x-3 px-4 py-2 text-gray-600">
+            <a href="{{ route('settings.index') }}"
+                class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('settings.index') ? 'bg-[#EEF2FF] text-[#3B82F6]' : 'text-gray-600' }} rounded-lg">
                 <i data-feather="settings"></i>
                 <span>Settings</span>
             </a>
@@ -163,15 +170,17 @@
                 <span>Logout</span>
             </a>
         </form>
-        <div class="flex items-center space-x-3 px-4 py-2 mt-2">
-            <div class="w-8 h-8 rounded-full bg-[#3B82F6] flex items-center justify-center">
-                <i data-feather="user" class="text-white"></i>
+        <a href="{{ route('profile.edit') }}">
+            <div class="flex items-center space-x-3 px-4 py-2 mt-2">
+                <div class="w-8 h-8 rounded-full bg-[#3B82F6] flex items-center justify-center">
+                    <i data-feather="user" class="text-white"></i>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-600">Username</div>
+                    <div class="text-xs text-gray-400">Lab Technician</div>
+                </div>
             </div>
-            <div>
-                <div class="text-sm text-gray-600">Username</div>
-                <div class="text-xs text-gray-400">Lab Technician</div>
-            </div>
-        </div>
+        </a>
     </div>
 </aside>
 

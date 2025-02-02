@@ -13,21 +13,21 @@ return new class extends Migration {
         Schema::create('customers', function (Blueprint $table) {
             $table->id('customer_id');
             $table->string('full_name', 100);
-            $table->string('passport_number', 20)->unique();
+            $table->string('passport_number', 20);
             $table->string('institution', 100)->nullable();
-            $table->string('specific_institution', 100)->nullable();
+            $table->string('specific_institution', 100)->nullable(); // This is the new column
             $table->string('position', 50)->nullable();
             $table->string('phone_number', 20)->nullable();
             $table->string('email', 255)->nullable();
             $table->dateTime('entry_datetime');
             $table->dateTime('exit_datetime')->nullable();
             $table->string('purpose_of_usage', 50)->nullable();
-            $table->text('purpose_description')->nullable();
             $table->string('equipment_used', 50)->nullable();
             $table->string('type_of_analysis', 100)->nullable();
             $table->string('supervisor_name', 100)->nullable();
             $table->decimal('usage_duration', 5, 2)->nullable();
             $table->text('suggestions')->nullable();
+            $table->text('purpose_description')->nullable();
             $table->text('technical_issues')->nullable();
             $table->timestamps();
         });
