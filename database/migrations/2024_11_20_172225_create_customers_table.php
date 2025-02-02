@@ -14,7 +14,6 @@ return new class extends Migration {
             $table->id('customer_id');
             $table->string('full_name', 100);
             $table->string('passport_number', 20);
-            $table->string('passport_number', 20);
             $table->string('institution', 100)->nullable();
             $table->string('specific_institution', 100)->nullable(); // This is the new column
             $table->string('position', 50)->nullable();
@@ -28,6 +27,7 @@ return new class extends Migration {
             $table->string('supervisor_name', 100)->nullable();
             $table->decimal('usage_duration', 5, 2)->nullable();
             $table->text('suggestions')->nullable();
+            $table->text('purpose_description')->nullable();
             $table->text('technical_issues')->nullable();
             $table->timestamps();
         });
