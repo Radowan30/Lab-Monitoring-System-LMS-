@@ -15,11 +15,41 @@ class SensorSeeder extends Seeder
     {
         // Only seed if no sensors exist
         if (Sensor::count() === 0) {
-            Sensor::factory()->create(['lab_room_name' => 'Preparation Lab', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
-            Sensor::factory()->create(['lab_room_name' => 'FETEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
-            Sensor::factory()->create(['lab_room_name' => 'FETEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
-            Sensor::factory()->create(['lab_room_name' => 'FESEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
-            Sensor::factory()->create(['lab_room_name' => 'FESEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
+            try {
+                // Try to use factory if Faker is available
+                Sensor::factory()->create(['lab_room_name' => 'Preparation Lab', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
+                Sensor::factory()->create(['lab_room_name' => 'FETEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
+                Sensor::factory()->create(['lab_room_name' => 'FETEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
+                Sensor::factory()->create(['lab_room_name' => 'FESEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
+                Sensor::factory()->create(['lab_room_name' => 'FESEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
+            } catch (\Exception $e) {
+                // Fallback: create sensors without factory if Faker is not available
+                $this->createSensorsWithoutFactory();
+            }
+        }
+    }
+
+    /**
+     * Create sensors without using factories (fallback when Faker is not available)
+     */
+    private function createSensorsWithoutFactory(): void
+    {
+        $sensors = [
+            ['lab_room_name' => 'Preparation Lab', 'temp_threshold' => 25, 'humidity_threshold' => 60],
+            ['lab_room_name' => 'FETEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60],
+            ['lab_room_name' => 'FETEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60],
+            ['lab_room_name' => 'FESEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60],
+            ['lab_room_name' => 'FESEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60],
+        ];
+
+        foreach ($sensors as $sensorData) {
+            Sensor::updateOrCreate(
+                ['lab_room_name' => $sensorData['lab_room_name']],
+                [
+                    'temp_threshold' => $sensorData['temp_threshold'],
+                    'humidity_threshold' => $sensorData['humidity_threshold'],
+                ]
+            );
         }
     }
 }
