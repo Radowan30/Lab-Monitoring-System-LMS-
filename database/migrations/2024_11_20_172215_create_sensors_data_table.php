@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('sensors_data', function (Blueprint $table) {
-            $table->id('data_id');
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('sensor_id');
             $table->decimal('temperature', 4, 2);
             $table->decimal('humidity', 3, 1);

@@ -26,7 +26,8 @@ String URL = "http://192.168.231.125:8000/dashboard/sensor1";
 double temperature = 0;
 double humidity = 0;
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
 
@@ -45,22 +46,31 @@ void setup() {
   connectToWiFi();
 }
 
-void loop() {
+void loop()
+{
   // Check if the configuration portal is requested
-  if (digitalRead(TRIGGER_PIN) == LOW) {
+  if (digitalRead(TRIGGER_PIN) == LOW)
+  {
     startConfigPortal();
-  } else {
+  }
+  else
+  {
     // Load data from DHT22 sensor
     Load_DHT22_Data();
 
-    if (temperature == 0 || humidity == 0) {
+    if (temperature == 0 || humidity == 0)
+    {
       // Sensor not working
       setColor(red[0], red[1], red[2]);
-    } else if (WiFi.status() != WL_CONNECTED) {
+    }
+    else if (WiFi.status() != WL_CONNECTED)
+    {
       // Not connected to WiFi
       setColor(yellow[0], yellow[1], yellow[2]);
       connectToWiFi(); // Attempt reconnection
-    } else {
+    }
+    else
+    {
       // Connected to WiFi and sensor is working
       setColor(green[0], green[1], green[2]);
 
@@ -74,26 +84,33 @@ void loop() {
       int httpCode = http.POST(postData);
       String payload = http.getString();
 
-      Serial.print("URL : "); Serial.println(URL); 
-      Serial.print("Data: "); Serial.println(postData);
-      Serial.print("httpCode: "); Serial.println(httpCode);
-      Serial.print("payload : "); Serial.println(payload);
+      Serial.print("URL : ");
+      Serial.println(URL);
+      Serial.print("Data: ");
+      Serial.println(postData);
+      Serial.print("httpCode: ");
+      Serial.println(httpCode);
+      Serial.print("payload : ");
+      Serial.println(payload);
       Serial.println("--------------------------------------------------");
       delay(3000);
     }
   }
 }
 
-void connectToWiFi() {
+void connectToWiFi()
+{
   Serial.println("Attempting to connect to WiFi...");
   WiFi.begin();
-  
-  while (WiFi.status() != WL_CONNECTED) {
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
     setColor(yellow[0], yellow[1], yellow[2]); // Indicate trying to connect
     delay(500);
 
     // If the user presses the button during connection attempts, enter config portal
-    if (digitalRead(TRIGGER_PIN) == LOW) {
+    if (digitalRead(TRIGGER_PIN) == LOW)
+    {
       startConfigPortal();
       return; // Exit this function as WiFiManager takes over
     }
@@ -103,13 +120,15 @@ void connectToWiFi() {
   setColor(green[0], green[1], green[2]);
 }
 
-void startConfigPortal() {
+void startConfigPortal()
+{
   setColor(lavender[0], lavender[1], lavender[2]);
   WiFiManager wm;
 
   wm.setConfigPortalTimeout(300); // Timeout after 5 minutes if no action is taken
 
-  if (!wm.startConfigPortal("Prep_Lab_SM_AP")) {
+  if (!wm.startConfigPortal("Prep_Lab_SM_AP"))
+  {
     Serial.println("Failed to connect and hit timeout");
     delay(3000);
     ESP.restart();
@@ -119,11 +138,13 @@ void startConfigPortal() {
   Serial.println("Connected to WiFi through configuration portal :)");
 }
 
-void Load_DHT22_Data() {
+void Load_DHT22_Data()
+{
   temperature = dht22.readTemperature(); // Celsius
   humidity = dht22.readHumidity();
 
-  if (isnan(temperature) || isnan(humidity)) {
+  if (isnan(temperature) || isnan(humidity))
+  {
     Serial.println("Failed to read from DHT sensor!");
     temperature = 0;
     humidity = 0;
@@ -133,7 +154,8 @@ void Load_DHT22_Data() {
   Serial.printf("Humidity: %.2f %%\n", humidity);
 }
 
-void setColor(int red, int green, int blue) {
+void setColor(int red, int green, int blue)
+{
   ledcWrite(redPin, red);
   ledcWrite(greenPin, green);
   ledcWrite(bluePin, blue);
