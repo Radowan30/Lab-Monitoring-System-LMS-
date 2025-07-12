@@ -50,68 +50,95 @@ class LabRoomController extends Controller
 
     public function getSensorData(Request $request)
     {
-        $sensorId = $request->input('sensorId'); // Required parameter
-        if (!$sensorId) {
-            return response()->json(['error' => 'Sensor ID is required'], 400);
-        }
-
-        // Fetch the threshold values for the given sensor ID
         try {
-            $sensor = Sensor::where('sensor_id', $sensorId)->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(['error' => 'Sensor not found'], 404);
+            $sensorId = $request->input('sensorId'); // Required parameter
+            if (!$sensorId) {
+                return response()->json(['error' => 'Sensor ID is required'], 400);
+            }
+
+            // Fetch the threshold values for the given sensor ID
+            try {
+                $sensor = Sensor::where('sensor_id', $sensorId)->firstOrFail();
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                return response()->json(['error' => 'Sensor not found'], 404);
+            }
+
+            // Retrieve threshold values
+            $tempThreshold = $sensor->temp_threshold;
+            $humidityThreshold = $sensor->humidity_threshold;
+
+            $viewType = $request->input('viewType', 'days'); // Default to days
+            $startDate = $request->input('startDate');
+            $endDate = $request->input('endDate');
+
+            // Default to last 7 days if no date range is provided
+            if (!$startDate || !$endDate) {
+                $endDate = Carbon::now();
+                $startDate = $endDate->copy()->subDays(7);
+            } else {
+                $startDate = Carbon::parse($startDate);
+                $endDate = Carbon::parse($endDate);
+            }
+
+            // Use the same approach as ReportController - use DB::table instead of Eloquent
+            $query = DB::table('sensors_data')
+                ->where('sensor_id', $sensorId)
+                ->whereBetween('recorded_at', [$startDate, $endDate]);
+
+            // Group data based on viewType - using simpler queries like ReportController
+            if ($viewType === 'weeks') {
+                $query->selectRaw('YEARWEEK(recorded_at) as period, AVG(temperature) as avg_temp, AVG(humidity) as avg_hum')
+                    ->groupBy('period');
+            } elseif ($viewType === 'months') {
+                $query->selectRaw('DATE_FORMAT(recorded_at, "%Y-%m") as period, AVG(temperature) as avg_temp, AVG(humidity) as avg_hum')
+                    ->groupBy('period');
+            } else {
+                $query->selectRaw('DATE(recorded_at) as period, AVG(temperature) as avg_temp, AVG(humidity) as avg_hum')
+                    ->groupBy('period');
+            }
+
+            $data = $query->orderBy('period')->get();
+
+            // Check if we have any data
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'labels' => [],
+                    'temperature' => [],
+                    'humidity' => [],
+                    'limit_temp' => [],
+                    'limit_hum' => [],
+                    'message' => 'No data available for the selected time period'
+                ]);
+            }
+
+            // Prepare data for the frontend - same approach as ReportController
+            $labels = [];
+            $temperature = [];
+            $humidity = [];
+            $limit_temp = [];
+            $limit_hum = [];
+
+            foreach ($data as $row) {
+                $labels[] = $row->period;
+                $temperature[] = (float) $row->avg_temp;
+                $humidity[] = (float) $row->avg_hum;
+                $limit_temp[] = $tempThreshold;
+                $limit_hum[] = $humidityThreshold;
+            }
+
+            return response()->json([
+                'labels' => $labels,
+                'temperature' => $temperature,
+                'humidity' => $humidity,
+                'limit_temp' => $limit_temp,
+                'limit_hum' => $limit_hum,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in getSensorData: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
         }
-
-        // Retrieve threshold values
-        $tempThreshold = $sensor->temp_threshold;
-        $humidityThreshold = $sensor->humidity_threshold;
-
-        $viewType = $request->input('viewType', 'days'); // Default to days
-        $startDate = $request->input('startDate');
-        $endDate = $request->input('endDate');
-
-        \Log::info('Sensor ID: ' . $sensorId);
-        \Log::info('Start Date: ' . $startDate);
-        \Log::info('End Date: ' . $endDate);
-
-        // Default to last 7 days if no date range is provided
-        if (!$startDate || !$endDate) {
-            $endDate = Carbon::now();
-            $startDate = $endDate->copy()->subDays(7);
-        } else {
-            $startDate = Carbon::parse($startDate);
-            $endDate = Carbon::parse($endDate);
-        }
-
-        // Fetch data from the database for the given sensor ID
-        $query = SensorsData::where('sensor_id', $sensorId)
-            ->whereBetween('recorded_at', [$startDate, $endDate])
-            ->orderBy('recorded_at', 'asc');
-
-        // Group data based on viewType
-        if ($viewType === 'weeks') {
-            $query->selectRaw('CONCAT(DATE_FORMAT(DATE_SUB(recorded_at, INTERVAL WEEKDAY(recorded_at) DAY), "%b %e"), " - ", DATE_FORMAT(DATE_ADD(recorded_at, INTERVAL (6 - WEEKDAY(recorded_at)) DAY), "%b %e")) as period, AVG(temperature) as avg_temp, AVG(humidity) as avg_hum')
-                ->groupBy('period');
-        } elseif ($viewType === 'months') {
-            $query->selectRaw('DATE_FORMAT(recorded_at, "%Y-%M") as period, AVG(temperature) as avg_temp, AVG(humidity) as avg_hum')
-                ->groupBy('period');
-        } else {
-            $query->selectRaw('DATE(recorded_at) as period, AVG(temperature) as avg_temp, AVG(humidity) as avg_hum')
-                ->groupBy('period');
-        }
-
-        $data = $query->get();
-
-        // Prepare data for the frontend
-        $response = [
-            'labels' => $data->pluck('period'),
-            'temperature' => $data->pluck('avg_temp'),
-            'humidity' => $data->pluck('avg_hum'),
-            'limit_temp' => $data->pluck('avg_temp')->map(fn($temp) => $tempThreshold),
-            'limit_hum' => $data->pluck('avg_hum')->map(fn($hum) => $humidityThreshold),
-        ];
-
-        return response()->json($response);
     }
 
 
