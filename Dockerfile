@@ -1,3 +1,5 @@
+
+# Build frontend assets
 FROM node:20-bullseye as build-frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -8,10 +10,11 @@ COPY tailwind.config.js ./
 COPY postcss.config.js ./
 RUN npm run build
 
+# Build PHP backend and install Nginx
 FROM php:8.2-fpm-bullseye as backend
 WORKDIR /var/www/html
 RUN apt-get update \
-    && apt-get install -y libpng-dev libonig-dev libxml2-dev zip unzip git curl \
+    && apt-get install -y libpng-dev libonig-dev libxml2-dev zip unzip git curl nginx \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
 # Install Composer
@@ -31,9 +34,12 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Copy built assets
 COPY --from=build-frontend /app/public/build /var/www/html/public/build
 
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Set environment variables for Railway
 ENV PORT=8080
 EXPOSE 8080
 
-# Entrypoint for Laravel
-CMD php artisan config:cache; php artisan route:cache; php artisan view:cache; php-fpm --nodaemonize
+# Start Nginx and PHP-FPM together
+CMD php artisan config:cache && php artisan route:cache && php artisan view:cache && service nginx start && php-fpm --nodaemonize
