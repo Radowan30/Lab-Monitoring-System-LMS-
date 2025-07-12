@@ -13,6 +13,9 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        Customer::factory()->count(10)->create();
+        // Only seed if no customers exist
+        if (Customer::count() === 0) {
+            Customer::factory()->count(10)->create();
+        }
     }
 }

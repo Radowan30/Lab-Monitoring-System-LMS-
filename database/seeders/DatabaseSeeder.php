@@ -17,18 +17,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create one admin user
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@lab.com',
-            'password' => Hash::make('admin123'),
-            'is_admin' => true,
-        ]);
+        // Create or update admin user (prevents duplicate entry errors)
+        User::updateOrCreate(
+            ['email' => 'admin@lab.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('admin123'),
+                'is_admin' => true,
+            ]
+        );
 
-        // Generate 4 random lab technicians
-        User::factory(4)->create(); // Generates 4 random users
+        // Generate 4 random lab technicians only if they don't exist
+        if (User::count() <= 1) { // Only create if we only have the admin user
+            User::factory(4)->create(); // Generates 4 random users
+        }
 
-        // Seed related tables
+        // Seed related tables only if they're empty
         $this->call([
             SensorSeeder::class,
             CustomerSeeder::class,

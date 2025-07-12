@@ -13,10 +13,13 @@ class SensorSeeder extends Seeder
      */
     public function run(): void
     {
-        Sensor::factory()->create(['lab_room_name' => 'Preparation Lab', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
-        Sensor::factory()->create(['lab_room_name' => 'FETEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
-        Sensor::factory()->create(['lab_room_name' => 'FETEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
-        Sensor::factory()->create(['lab_room_name' => 'FESEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
-        Sensor::factory()->create(['lab_room_name' => 'FESEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
+        // Only seed if no sensors exist
+        if (Sensor::count() === 0) {
+            Sensor::factory()->create(['lab_room_name' => 'Preparation Lab', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
+            Sensor::factory()->create(['lab_room_name' => 'FETEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
+            Sensor::factory()->create(['lab_room_name' => 'FETEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
+            Sensor::factory()->create(['lab_room_name' => 'FESEM Room', 'temp_threshold' => 25, 'humidity_threshold' => 60]);
+            Sensor::factory()->create(['lab_room_name' => 'FESEM Room Chiller', 'temp_threshold' => 20, 'humidity_threshold' => 60]);
+        }
     }
 }

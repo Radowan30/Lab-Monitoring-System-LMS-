@@ -12,7 +12,10 @@ class SensorsDataSeeder extends Seeder
      */
     public function run(): void
     {
-        // Generate 50 random records
-        SensorsData::factory()->count(50)->create();
+        // Only seed if no sensor data exists
+        if (SensorsData::count() === 0) {
+            // Generate 50 random records
+            SensorsData::factory()->count(50)->create();
+        }
     }
 }
