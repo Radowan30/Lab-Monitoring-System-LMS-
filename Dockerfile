@@ -15,7 +15,7 @@ RUN apt-get update \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
 # Install Composer
-COPY --from=build-frontend /app/node_modules/.vite /var/www/html/public/build
+COPY --from=build-frontend /app/public/build /var/www/html/public/build
 COPY --from=build-frontend /app/resources/ /var/www/html/resources/
 COPY --from=build-frontend /app/package.json /var/www/html/package.json
 COPY --from=build-frontend /app/vite.config.js /var/www/html/vite.config.js
