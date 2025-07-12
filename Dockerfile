@@ -14,7 +14,7 @@ RUN npm run build
 FROM php:8.2-fpm-bullseye as backend
 WORKDIR /var/www/html
 RUN apt-get update \
-    && apt-get install -y libpng-dev libonig-dev libxml2-dev zip unzip git curl nginx \
+    && apt-get install -y libpng-dev libonig-dev libxml2-dev libpq-dev zip unzip git curl nginx \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Install Composer
