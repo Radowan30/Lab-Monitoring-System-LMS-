@@ -29,7 +29,13 @@ class DatabaseSeeder extends Seeder
 
         // Generate 4 random lab technicians only if they don't exist
         if (User::count() <= 1) { // Only create if we only have the admin user
-            User::factory(4)->create(); // Generates 4 random users
+            try {
+                // Try to use factory if Faker is available
+                User::factory(4)->create();
+            } catch (\Exception $e) {
+                // Fallback: create users without factory if Faker is not available
+                $this->createUsersWithoutFactory();
+            }
         }
 
         // Seed related tables only if they're empty
@@ -38,5 +44,29 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             SensorsDataSeeder::class,
         ]);
+    }
+
+    /**
+     * Create users without using factories (fallback when Faker is not available)
+     */
+    private function createUsersWithoutFactory(): void
+    {
+        $users = [
+            ['name' => 'Lab Technician 1', 'email' => 'tech1@lab.com'],
+            ['name' => 'Lab Technician 2', 'email' => 'tech2@lab.com'],
+            ['name' => 'Lab Technician 3', 'email' => 'tech3@lab.com'],
+            ['name' => 'Lab Technician 4', 'email' => 'tech4@lab.com'],
+        ];
+
+        foreach ($users as $userData) {
+            User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'password' => Hash::make('password'),
+                    'is_admin' => false,
+                ]
+            );
+        }
     }
 }

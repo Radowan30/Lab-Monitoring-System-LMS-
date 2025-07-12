@@ -56,8 +56,8 @@ COPY --from=build-frontend /app/vite.config.js /var/www/html/vite.config.js
 COPY --from=build-frontend /app/tailwind.config.js /var/www/html/tailwind.config.js
 COPY --from=build-frontend /app/postcss.config.js /var/www/html/postcss.config.js
 
-# Install PHP dependencies (prod only)
-RUN composer install --optimize-autoloader --no-dev
+# Install PHP dependencies (including Faker for seeding)
+RUN composer install --optimize-autoloader --no-interaction
 
 # ✅ Set permissions for Laravel storage & cache folders
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
